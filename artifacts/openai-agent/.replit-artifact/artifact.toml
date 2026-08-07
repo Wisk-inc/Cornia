@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "OpenAI OAuth Agent"
+description = "A ChatGPT-style coding agent that lets users sign in with ChatGPT and work with files, terminal commands, and streamed AI responses in a sandboxed workspace."
+version = "1.0.0"
+id = "artifacts/openai-agent"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/", "/agent-api" ]
+localPort = 18917
+
+[services.development]
+run = "pnpm --filter @workspace/openai-agent run dev"
+
+[services.production]
+
+[services.production.build]
+args = [ "pnpm", "--filter", "@workspace/openai-agent", "run", "build" ]
+
+[services.production.run]
+args = [ "pnpm", "--filter", "@workspace/openai-agent", "run", "start" ]
+
+[services.env]
+PORT = "18917"
+BASE_PATH = "/"

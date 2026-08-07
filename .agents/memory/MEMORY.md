@@ -1,0 +1,1 @@
+- [Hosted agent routing](hosted-agent-routing.md) — use a dedicated API prefix when another artifact owns the shared `/api` route.
