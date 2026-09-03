@@ -309,6 +309,109 @@ export const BrainIcon = (props: IconProps) => (
 	</Svg>
 )
 
+export const BookIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M4 5.5A2 2 0 0 1 6 3.5h11a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2Z" />
+		<path d="M4 18a2 2 0 0 1 2-2h12" />
+		<path d="M8 7.5h6M8 11h6" />
+	</Svg>
+)
+
+export const LinkIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.4 1.4" />
+		<path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1.4-1.4" />
+	</Svg>
+)
+
+export const PackageIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M12 3 20 7.2v9.6L12 21l-8-4.2V7.2Z" />
+		<path d="m4 7.2 8 4.2 8-4.2" />
+		<path d="M12 11.4V21" />
+	</Svg>
+)
+
+export const PlayIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M8 5.5v13l10-6.5Z" />
+	</Svg>
+)
+
+export const ChevronUpIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="m6 14.5 6-6 6 6" />
+	</Svg>
+)
+
+export const GoogleIcon = ({ className = "icon" }: IconProps) => (
+	<svg
+		aria-hidden="true"
+		className={className}
+		focusable="false"
+		viewBox="0 0 24 24"
+	>
+		<path
+			d="M21.6 12.23c0-.71-.06-1.4-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.89-1.74 2.98-4.3 2.98-7.35Z"
+			fill="#4285F4"
+		/>
+		<path
+			d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.24-2.5c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"
+			fill="#34A853"
+		/>
+		<path
+			d="M6.41 13.92a6 6 0 0 1 0-3.83V7.5H3.06a10 10 0 0 0 0 9l3.35-2.58Z"
+			fill="#FBBC05"
+		/>
+		<path
+			d="M12 5.95c1.47 0 2.79.5 3.83 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2a10 10 0 0 0-8.94 5.5l3.35 2.59C7.2 7.72 9.4 5.95 12 5.95Z"
+			fill="#EA4335"
+		/>
+	</svg>
+)
+
+export const AppleIcon = ({ className = "icon" }: IconProps) => (
+	<svg
+		aria-hidden="true"
+		className={className}
+		fill="currentColor"
+		focusable="false"
+		viewBox="0 0 24 24"
+	>
+		<path d="M16.36 12.62c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.62-1.7-3.19-1.72-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.7.71 2.87.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.51ZM14.2 5.9c.6-.74 1.02-1.76.9-2.78-.87.04-1.94.59-2.57 1.32-.56.65-1.06 1.7-.93 2.7.98.08 1.98-.5 2.6-1.24Z" />
+	</svg>
+)
+
+export const MailIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<rect height="14" rx="2" width="18" x="3" y="5" />
+		<path d="m3.5 7 8.5 6 8.5-6" />
+	</Svg>
+)
+
+export const ArrowRightIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M4.5 12h15" />
+		<path d="m13.5 6 6 6-6 6" />
+	</Svg>
+)
+
+export const ChartIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M4 20V4" />
+		<path d="M4 20h16" />
+		<path d="M8 20v-6M12.5 20V8M17 20v-9" />
+	</Svg>
+)
+
+export const SignOutIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M14.5 4.5H6a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 6 19.5h8.5" />
+		<path d="M16 8.5 19.5 12 16 15.5" />
+		<path d="M19.5 12h-9" />
+	</Svg>
+)
+
 /** The project's own mark, used as the app logo. */
 export const BrandIcon = ({ className = "icon" }: IconProps) => (
 	<svg

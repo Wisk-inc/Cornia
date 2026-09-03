@@ -1,22 +1,32 @@
 import { tool } from "@ai-sdk/provider-utils"
 import type { OpenAIOAuthProvider } from "@openai-oauth/ai-sdk"
-import { generateImage } from "ai"
 import { z } from "zod"
+import { generateWorkspaceImage, IMAGE_MODEL } from "./images"
+import { type Plan, planTools } from "./plans"
+import { deepResearch, extractCode, faviconUrl, siteName } from "./research"
 import { fetchPage, webSearch } from "./search"
-import { runCommand } from "./terminal"
+import {
+	PACKAGE_MANAGERS,
+	packageCommand,
+	runCommand,
+	runFileCommand,
+} from "./terminal"
 import {
 	editWorkspaceFile,
 	listWorkspace,
 	readWorkspaceFile,
 	removeWorkspacePath,
+	type WorkspaceEntry,
 	writeWorkspaceFile,
 } from "./workspace"
 
-export const IMAGE_MODEL = "gpt-image-2"
+export { IMAGE_MODEL }
 
 export type AgentToolContext = {
 	sessionId: string
 	provider: OpenAIOAuthProvider
+	/** Decides which tools exist at all for this turn. */
+	plan: Plan
 	signal?: AbortSignal
 }
 
@@ -31,18 +41,19 @@ const planStepSchema = z.object({
 const shellQuote = (value: string): string =>
 	`'${value.replace(/'/g, "'\\''")}'`
 
-const slugify = (value: string): string =>
-	value
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-|-$/g, "")
-		.slice(0, 48) || "image"
-
-export const createAgentTools = ({
+/**
+ * Every tool the agent can call, before the plan filter.
+ *
+ * `createAgentTools` is what the chat route actually uses: it drops the tools
+ * the caller's plan does not include, so a locked tool is not merely hidden in
+ * the UI — it is absent from the request the model sees. There is no client
+ * value to tamper with, because the model is never told the tool exists.
+ */
+const allTools = ({
 	sessionId,
 	provider,
 	signal,
-}: AgentToolContext) => ({
+}: Omit<AgentToolContext, "plan">) => ({
 	update_plan: tool({
 		description:
 			"Record or update the plan for a multi-step task. Call this before starting work and again whenever a step finishes. Keep exactly one step in_progress.",
@@ -242,7 +253,11 @@ export const createAgentTools = ({
 				)
 			}
 
-			const entries = await listWorkspace(sessionId, target).catch(() => [])
+			// An empty listing is a fine answer here: the clone succeeded either way.
+			const entries: WorkspaceEntry[] = await listWorkspace(
+				sessionId,
+				target,
+			).catch(() => [])
 			return {
 				path: target,
 				url,
@@ -261,25 +276,41 @@ export const createAgentTools = ({
 
 	web_search: tool({
 		description:
-			"Search the web for current information, documentation or library details.",
+			"Search the web for a quick answer or a link. For anything the user calls research, or that needs more than one source, use `deep_research` instead — it reads the pages rather than just listing them.",
 		inputSchema: z.object({
 			query: z.string(),
 			count: z.number().int().min(1).max(10).optional(),
 		}),
-		execute: async ({ query, count }) =>
-			await webSearch(query, count ?? 6, signal),
+		execute: async ({ query, count }) => {
+			const response = await webSearch(query, count ?? 6, signal)
+			return {
+				...response,
+				results: response.results.map((result) => ({
+					...result,
+					site: siteName(result.url),
+					favicon: faviconUrl(result.url),
+				})),
+			}
+		},
 	}),
 
 	fetch_url: tool({
 		description:
 			"Fetch a web page or API response and return it as readable text. Use it to read a search result in full.",
 		inputSchema: z.object({ url: z.string() }),
-		execute: async ({ url }) => await fetchPage(url, signal),
+		execute: async ({ url }) => {
+			const page = await fetchPage(url, signal)
+			return {
+				...page,
+				site: siteName(page.url),
+				favicon: faviconUrl(page.url),
+			}
+		},
 	}),
 
 	generate_image: tool({
 		description:
-			"Generate an image from a text prompt and save it into the workspace. Only available on paid ChatGPT plans.",
+			"Generate an image from a text prompt and save it into the workspace. Needs a ChatGPT plan that includes image generation, or an OPENAI_API_KEY on the server.",
 		inputSchema: z.object({
 			prompt: z.string().describe("Detailed description of the image."),
 			filename: z
@@ -288,29 +319,199 @@ export const createAgentTools = ({
 				.describe("Optional file name, saved under images/."),
 			size: z.enum(["1024x1024", "1024x1536", "1536x1024", "auto"]).optional(),
 		}),
-		execute: async ({ prompt, filename, size }) => {
-			const result = await generateImage({
-				model: provider.image(IMAGE_MODEL),
-				prompt,
-				...(size && size !== "auto" ? { size } : {}),
-			})
-			const extension = result.image.mediaType.split("/")[1] ?? "png"
-			const name = filename?.trim()
-				? filename.replace(/^\/+/, "")
-				: `images/${slugify(prompt)}-${Date.now()}.${extension}`
-			const saved = await writeWorkspaceFile(
+		execute: async ({ prompt, filename, size }) =>
+			await generateWorkspaceImage({
 				sessionId,
-				name,
-				result.image.uint8Array,
-			)
-			return {
-				path: saved.relative,
-				mediaType: result.image.mediaType,
-				bytes: saved.bytes,
 				prompt,
+				provider,
+				filename,
+				size: size && size !== "auto" ? size : undefined,
+				signal,
+			}),
+	}),
+
+	deep_research: tool({
+		description:
+			"Research a topic properly: runs several web searches, opens the pages they point at, and returns what each one actually says. Use this instead of `web_search` whenever the answer needs more than one source, or when the user asks you to research something. Always cite the source URLs in your reply.",
+		inputSchema: z.object({
+			topic: z.string().describe("What the user wants to know."),
+			queries: z
+				.array(z.string())
+				.min(1)
+				.max(6)
+				.optional()
+				.describe(
+					"Search queries to run. Give 2-4 differently worded angles for good coverage; defaults to the topic itself.",
+				),
+			max_sources: z
+				.number()
+				.int()
+				.min(1)
+				.max(12)
+				.optional()
+				.describe("How many pages to open and read. Defaults to 6."),
+		}),
+		execute: async ({ topic, queries, max_sources }) =>
+			await deepResearch({
+				topic,
+				queries,
+				maxSources: max_sources,
+				signal,
+			}),
+	}),
+
+	extract_code: tool({
+		description:
+			"Pull the code samples out of a web page (docs, a blog post, a README) as usable blocks, instead of reading the whole page as prose.",
+		inputSchema: z.object({
+			url: z.string().describe("Page to extract code from."),
+			save_to: z
+				.string()
+				.optional()
+				.describe(
+					"Optional workspace path. When set, the largest block is written there.",
+				),
+		}),
+		execute: async ({ url, save_to }) => {
+			const extracted = await extractCode(url, signal)
+			let saved: { path: string; bytes: number } | undefined
+
+			if (save_to?.trim()) {
+				const largest = [...extracted.blocks].sort(
+					(left, right) => right.code.length - left.code.length,
+				)[0]
+				if (largest) {
+					const written = await writeWorkspaceFile(
+						sessionId,
+						save_to.replace(/^\/+/, ""),
+						largest.code,
+					)
+					saved = { path: written.relative, bytes: written.bytes }
+				}
+			}
+
+			return {
+				url: extracted.url,
+				title: extracted.title,
+				site: siteName(extracted.url),
+				favicon: faviconUrl(extracted.url),
+				count: extracted.blocks.length,
+				blocks: extracted.blocks.slice(0, 20),
+				saved,
+			}
+		},
+	}),
+
+	install_package: tool({
+		description:
+			"Install one or more packages into the sandbox. Prefer this over a raw `run_command` install: it picks the right flags and gives installs a long enough timeout.",
+		inputSchema: z.object({
+			manager: z
+				.enum(PACKAGE_MANAGERS)
+				.describe("Package manager to use, e.g. npm or pip."),
+			packages: z
+				.array(z.string())
+				.min(1)
+				.max(30)
+				.describe("Package names, optionally with a version, e.g. `zod@3.25`."),
+			dev: z
+				.boolean()
+				.optional()
+				.describe("Install as a dev dependency where the manager supports it."),
+			cwd: z
+				.string()
+				.optional()
+				.describe("Directory to install into, relative to the workspace root."),
+		}),
+		execute: async ({ manager, packages, dev, cwd }) => {
+			const command = packageCommand(manager, "install", packages, dev)
+			const result = await runCommand({
+				sessionId,
+				command,
+				cwd,
+				// Dependency trees are slow; a default timeout kills them halfway.
+				timeoutMs: 600_000,
+				signal,
+			})
+			const failed = result.timedOut || result.exitCode !== 0
+			return {
+				...result,
+				manager,
+				packages,
+				failed,
+				hint: failed
+					? "The install failed. Read stderr: a missing manager needs a different `manager`, and a resolution error usually means the version does not exist."
+					: undefined,
+			}
+		},
+	}),
+
+	uninstall_package: tool({
+		description: "Remove one or more packages from the sandbox.",
+		inputSchema: z.object({
+			manager: z.enum(PACKAGE_MANAGERS),
+			packages: z.array(z.string()).min(1).max(30),
+			cwd: z.string().optional(),
+		}),
+		execute: async ({ manager, packages, cwd }) => {
+			const command = packageCommand(manager, "uninstall", packages)
+			const result = await runCommand({
+				sessionId,
+				command,
+				cwd,
+				timeoutMs: 300_000,
+				signal,
+			})
+			return {
+				...result,
+				manager,
+				packages,
+				failed: result.timedOut || result.exitCode !== 0,
+			}
+		},
+	}),
+
+	run_file: tool({
+		description:
+			"Run a file in the workspace with the right interpreter for its extension (.py, .js, .ts, .sh, .rb, .go, .rs, …). Use it straight after `write_file` to check that what you wrote actually works.",
+		inputSchema: z.object({
+			path: z.string().describe("File to run, relative to the workspace root."),
+			args: z.array(z.string()).optional().describe("Arguments for the program."),
+			cwd: z.string().optional(),
+			timeout_ms: z.number().int().min(1000).max(300000).optional(),
+		}),
+		execute: async ({ path, args, cwd, timeout_ms }) => {
+			const command = runFileCommand(path, args ?? [])
+			const result = await runCommand({
+				sessionId,
+				command,
+				cwd,
+				timeoutMs: timeout_ms,
+				signal,
+			})
+			const failed = result.timedOut || result.exitCode !== 0
+			return {
+				...result,
+				path,
+				failed,
+				hint: failed
+					? "Non-zero exit. Open the file, fix the error the output names, and run it again."
+					: undefined,
 			}
 		},
 	}),
 })
 
-export type AgentTools = ReturnType<typeof createAgentTools>
+export type AgentTools = Partial<ReturnType<typeof allTools>>
+
+export const createAgentTools = ({
+	plan,
+	...context
+}: AgentToolContext): AgentTools => {
+	const permitted = new Set(planTools(plan))
+	const everything = allTools(context)
+
+	return Object.fromEntries(
+		Object.entries(everything).filter(([name]) => permitted.has(name)),
+	) as AgentTools
+}

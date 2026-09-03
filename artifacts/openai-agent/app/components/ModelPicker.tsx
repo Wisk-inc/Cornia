@@ -6,7 +6,9 @@ import type { AgentModel } from "../lib/models"
 import {
 	CheckIcon,
 	ChevronDownIcon,
+	LockIcon,
 	RefreshIcon,
+	SparkleIcon,
 	SpinnerIcon,
 	WarningIcon,
 } from "./icons"
@@ -15,10 +17,17 @@ export function ModelPicker({
 	models,
 	value,
 	onChange,
+	allowsModel,
+	planName,
+	onUpgrade,
 }: {
 	models: ModelsState
 	value?: string
 	onChange: (modelId: string) => void
+	/** Locked models stay visible but unusable, so the offer is legible. */
+	allowsModel: (modelId: string) => boolean
+	planName: string
+	onUpgrade: () => void
 }) {
 	const [open, setOpen] = useState(false)
 	const anchorRef = useRef<HTMLDivElement>(null)
@@ -46,35 +55,57 @@ export function ModelPicker({
 	}, [open])
 
 	const selected = models.models.find((model) => model.id === value)
+	const lockedCount = models.models.filter(
+		(model) => !allowsModel(model.id),
+	).length
 	const standard = models.models.filter((model) => !model.experimental)
 	const experimental = models.models.filter((model) => model.experimental)
 
-	const renderItem = (model: AgentModel) => (
-		<button
-			className="menuItem"
-			key={model.id}
-			onClick={() => {
-				onChange(model.id)
-				setOpen(false)
-			}}
-			type="button"
-		>
-			<span className="menuItemBody">
-				<span className="menuItemTitle">
-					{model.label}
-					{model.experimental ? (
-						<span className="badge experimental">
-							{model.supportedInApi ? "hidden" : "no api"}
-						</span>
-					) : null}
+	const renderItem = (model: AgentModel) => {
+		const locked = !allowsModel(model.id)
+		return (
+			<button
+				aria-disabled={locked}
+				className={`menuItem ${locked ? "locked" : ""}`}
+				key={model.id}
+				onClick={() => {
+					// A locked row is an upsell, not a selection. The server refuses
+					// the model regardless, so this only decides which of the two
+					// things the click does.
+					if (locked) {
+						onUpgrade()
+						setOpen(false)
+						return
+					}
+					onChange(model.id)
+					setOpen(false)
+				}}
+				type="button"
+			>
+				<span className="menuItemBody">
+					<span className="menuItemTitle">
+						{model.label}
+						{locked ? (
+							<span className="badge locked">
+								<LockIcon className="icon xs" />
+								Max
+							</span>
+						) : model.experimental ? (
+							<span className="badge experimental">
+								{model.supportedInApi ? "hidden" : "no api"}
+							</span>
+						) : null}
+					</span>
+					<span className="menuItemDescription">
+						{model.id} · {model.description}
+					</span>
 				</span>
-				<span className="menuItemDescription">
-					{model.id} · {model.description}
-				</span>
-			</span>
-			{model.id === value ? <CheckIcon className="icon sm check" /> : null}
-		</button>
-	)
+				{model.id === value && !locked ? (
+					<CheckIcon className="icon sm check" />
+				) : null}
+			</button>
+		)
+	}
 
 	return (
 		<div className="menuAnchor" ref={anchorRef}>
@@ -103,6 +134,17 @@ export function ModelPicker({
 
 			{open ? (
 				<div className="menu" role="menu">
+					{lockedCount > 0 ? (
+						<button className="menuUpsell" onClick={onUpgrade} type="button">
+							<SparkleIcon className="icon sm" />
+							<span>
+								<strong>{lockedCount} more models with Cornia Max</strong>
+								<br />
+								{planName} runs on {models.models.find((model) => allowsModel(model.id))?.label ?? "one model"}. Upgrade for the rest.
+							</span>
+						</button>
+					) : null}
+
 					{models.warning ? (
 						<div
 							className="menuFooter"

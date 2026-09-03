@@ -1,15 +1,19 @@
 "use client"
 
+import { UserButton } from "@clerk/nextjs"
 import { parseJwtClaims } from "@openai-oauth/core"
 import { useSignInWithChatGPT } from "@openai-oauth/react"
 import type { UIMessage } from "ai"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { emptyConversation, useConversations } from "../hooks/useConversations"
+import { useEntitlements } from "../hooks/useEntitlements"
 import { useModels } from "../hooks/useModels"
 import {
 	downloadAllConversations,
 	downloadConversationMarkdown,
 } from "../lib/export"
+import { clerkEnabled } from "../lib/clerk"
+import type { PlanFeature } from "../lib/plans"
 import { DEFAULT_ROLE_ID, roleById } from "../lib/roles"
 import type { Conversation, Settings } from "../lib/types"
 import { ChatView } from "./ChatView"
@@ -21,12 +25,16 @@ import {
 	NewChatIcon,
 	SettingsIcon,
 	SidebarIcon,
+	SparkleIcon,
 	SunIcon,
+	TerminalIcon,
 } from "./icons"
 import { ModelPicker } from "./ModelPicker"
 import { SettingsDialog } from "./SettingsDialog"
 import { Sidebar } from "./Sidebar"
 import { SignIn } from "./SignIn"
+import { TerminalPanel } from "./TerminalPanel"
+import { UpgradeDialog } from "./UpgradeDialog"
 
 const SETTINGS_KEY = "agent.settings.v1"
 const MODEL_KEY = "agent.model.v1"
@@ -66,14 +74,19 @@ export function AgentApp() {
 	const { conversations, loaded, upsert, patch, saveMessages, remove } =
 		useConversations()
 	const models = useModels(isSignedIn)
+	const entitlements = useEntitlements(isSignedIn)
 
 	const [settings, setSettings] = useState<Settings>(defaultSettings)
 	const [settingsOpen, setSettingsOpen] = useState(false)
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 	const [filesOpen, setFilesOpen] = useState(false)
+	const [terminalOpen, setTerminalOpen] = useState(false)
 	const [workspaceToken, setWorkspaceToken] = useState(0)
 	const [activeId, setActiveId] = useState<string | undefined>(undefined)
 	const [model, setModel] = useState<string | undefined>(undefined)
+	const [upgrade, setUpgrade] = useState<
+		{ feature?: PlanFeature } | undefined
+	>(undefined)
 
 	useEffect(() => {
 		setSettings(readSettings())
@@ -91,17 +104,29 @@ export function AgentApp() {
 		}
 	}, [settings])
 
-	// Fall back to the account's best available model until one is chosen.
+	// Settle on a model the account can actually use. A stored choice from a
+	// lapsed subscription, or one edited into local storage, is replaced here —
+	// and would be refused by the server in any case.
+	const { allowsModel, freeModel, loaded: planLoaded } = entitlements
 	useEffect(() => {
-		if (models.models.length === 0) {
+		if (models.models.length === 0 || !planLoaded) {
 			return
 		}
-		setModel((current) =>
-			current && models.models.some((item) => item.id === current)
-				? current
-				: models.defaultModel,
-		)
-	}, [models.models, models.defaultModel])
+		setModel((current) => {
+			if (current && models.models.some((item) => item.id === current)) {
+				if (allowsModel(current)) {
+					return current
+				}
+			}
+			const preferred = models.defaultModel
+			if (preferred && allowsModel(preferred)) {
+				return preferred
+			}
+			return (
+				models.models.find((item) => allowsModel(item.id))?.id ?? freeModel
+			)
+		})
+	}, [models.models, models.defaultModel, allowsModel, freeModel, planLoaded])
 
 	useEffect(() => {
 		if (model) {
@@ -213,6 +238,7 @@ export function AgentApp() {
 				activeId={activeId}
 				collapsed={sidebarCollapsed}
 				conversations={conversations}
+				corniaCode={entitlements.can("corniaCode")}
 				onDelete={handleDelete}
 				onNewChat={newChat}
 				onOpenFiles={() => setFilesOpen(true)}
@@ -227,6 +253,8 @@ export function AgentApp() {
 				onExportAll={() => downloadAllConversations(conversations)}
 				onSignOut={() => void auth.logout()}
 				onToggle={() => setSidebarCollapsed(true)}
+				onUpgrade={() => setUpgrade({ feature: "corniaCode" })}
+				planName={entitlements.planName}
 			/>
 
 			{!sidebarCollapsed ? (
@@ -261,7 +289,14 @@ export function AgentApp() {
 						</>
 					) : null}
 
-					<ModelPicker models={models} onChange={setModel} value={model} />
+					<ModelPicker
+						allowsModel={entitlements.allowsModel}
+						models={models}
+						onChange={setModel}
+						onUpgrade={() => setUpgrade({ feature: "allModels" })}
+						planName={entitlements.planName}
+						value={model}
+					/>
 
 					<span className="topBarSpacer" />
 
@@ -299,10 +334,54 @@ export function AgentApp() {
 					>
 						{settings.theme === "dark" ? <SunIcon /> : <MoonIcon />}
 					</button>
+					{entitlements.planId === "free" ? (
+						<button
+							className="pill upsellPill"
+							onClick={() => setUpgrade({})}
+							title="See what Cornia Max adds"
+							type="button"
+						>
+							<SparkleIcon className="icon sm" />
+							<span className="pillLabel">Upgrade</span>
+						</button>
+					) : null}
+
+					{/* The app account, next to the ChatGPT account in the sidebar. */}
+					{clerkEnabled ? (
+						<UserButton
+							appearance={{ elements: { avatarBox: { width: 26, height: 26 } } }}
+						/>
+					) : null}
+					<button
+						aria-label="Terminal"
+						className={`iconButton ${terminalOpen ? "active" : ""} ${entitlements.can("terminal") ? "" : "locked"}`}
+						onClick={() =>
+							entitlements.can("terminal")
+								? setTerminalOpen((current) => !current)
+								: setUpgrade({ feature: "terminal" })
+						}
+						title={
+							entitlements.can("terminal")
+								? "Open a shell in this chat's sandbox"
+								: "The terminal is a Cornia Max feature"
+						}
+						type="button"
+					>
+						<TerminalIcon />
+					</button>
 					<button
 						aria-label="Workspace files"
-						className={`iconButton ${filesOpen ? "active" : ""}`}
-						onClick={() => setFilesOpen((current) => !current)}
+						className={`iconButton ${filesOpen ? "active" : ""} ${entitlements.can("workspace") ? "" : "locked"}`}
+						onClick={() =>
+							entitlements.can("workspace")
+								? setFilesOpen((current) => !current)
+								: setUpgrade({ feature: "workspace" })
+						}
+						title={
+							entitlements.can("workspace")
+								? "Workspace files"
+								: "The workspace is a Cornia Max feature"
+						}
 						type="button"
 					>
 						<FolderIcon />
@@ -312,18 +391,29 @@ export function AgentApp() {
 				{conversation ? (
 					<ChatView
 						conversation={conversation}
+						entitlements={entitlements}
 						key={conversation.id}
 						model={model}
 						modelInfo={modelInfo}
 						onMessagesChange={handleMessages}
 						onTitle={handleTitle}
+						onUpgrade={(feature) => setUpgrade({ feature })}
 						onWorkspaceChanged={handleWorkspaceChanged}
 						settings={settings}
 					/>
 				) : null}
 			</div>
 
-			{filesOpen && conversation ? (
+			{terminalOpen && conversation && entitlements.can("terminal") ? (
+				<TerminalPanel
+					key={conversation.id}
+					onClose={() => setTerminalOpen(false)}
+					onWorkspaceChanged={handleWorkspaceChanged}
+					sessionId={conversation.id}
+				/>
+			) : null}
+
+			{filesOpen && conversation && entitlements.can("workspace") ? (
 				<FilesPanel
 					onClose={() => setFilesOpen(false)}
 					refreshToken={workspaceToken}
@@ -331,11 +421,24 @@ export function AgentApp() {
 				/>
 			) : null}
 
+			{upgrade ? (
+				<UpgradeDialog
+					feature={upgrade.feature}
+					onClose={() => setUpgrade(undefined)}
+					usage={entitlements.usage}
+				/>
+			) : null}
+
 			{settingsOpen ? (
 				<SettingsDialog
+					canChooseReasoning={entitlements.can("reasoningControl")}
 					modelLabel={modelInfo?.label}
 					modelLevels={modelInfo?.reasoningLevels}
 					onClose={() => setSettingsOpen(false)}
+					onUpgrade={() => {
+						setSettingsOpen(false)
+						setUpgrade({ feature: "reasoningControl" })
+					}}
 					onSave={(next) => {
 						setSettings(next)
 						setSettingsOpen(false)

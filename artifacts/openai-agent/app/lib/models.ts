@@ -88,7 +88,8 @@ export const prettyModelLabel = (slug: string): string => {
 
 		if (/^gpt$/i.test(part)) {
 			const version = parts[index + 1]
-			if (version && /^\d[\d.]*$/.test(version)) {
+			// "4o" and "3.5" both belong to the family name: GPT-4o, GPT-3.5.
+			if (version && /^\d[\d.]*[a-z]?$/i.test(version)) {
 				words.push(`GPT-${version}`)
 				index += 1
 				continue
@@ -240,7 +241,7 @@ export const fetchModelCatalog = async (
 					.filter((model): model is AgentModel => model !== null)
 				if (models.length > 0) {
 					return {
-						models: sortModels(models),
+						models: withKnownModels(models),
 						clientVersion,
 						source: "codex-catalog",
 						fetchedAt: Date.now(),
@@ -286,7 +287,7 @@ export const fetchModelCatalog = async (
 	}
 
 	return {
-		models: sortModels(models),
+		models: withKnownModels(models),
 		clientVersion,
 		source: "openai-compatible",
 		fetchedAt: Date.now(),
@@ -301,30 +302,46 @@ export const DEFAULT_MODEL_PREFERENCE = [
 	"gpt-5.4-codex",
 	"gpt-5.4",
 	"gpt-5.4-mini",
+	"gpt-5.3-codex",
+	"gpt-5.2",
+	"gpt-5.1",
+	"gpt-5",
 ]
 
+type KnownModel = Record<string, unknown> & { slug: string }
+
+const reasoningLevels = (...levels: string[]) =>
+	levels.map((effort) => ({ effort }))
+
+const STANDARD_LEVELS = reasoningLevels("low", "medium", "high")
+const EXTENDED_LEVELS = reasoningLevels("low", "medium", "high", "xhigh")
+const FULL_LEVELS = reasoningLevels(
+	"low",
+	"medium",
+	"high",
+	"xhigh",
+	"max",
+	"ultra",
+)
+
 /**
- * Used only when the catalog cannot be reached, so the app still works instead
- * of showing an empty picker. These slugs and their capabilities come from the
- * model list shipped inside the Codex client itself.
+ * Every GPT-family slug this app knows how to talk to.
+ *
+ * The live catalog is always the authority — this list exists so that (a) the
+ * picker still works when the catalog cannot be read, and (b) a model OpenAI
+ * serves but does not advertise to this client version is still selectable.
+ * A slug listed here that the account cannot actually use shows up under
+ * "Experimental" and reports the upstream error if it is picked.
  */
-const FALLBACK_MODELS: Array<
-	Partial<Record<string, unknown>> & { slug: string }
-> = [
+const KNOWN_MODELS: KnownModel[] = [
+	// GPT-5.6 family.
 	{
 		slug: "gpt-5.6-sol",
 		visibility: "list",
 		default_reasoning_level: "low",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
-		supported_reasoning_levels: [
-			{ effort: "low" },
-			{ effort: "medium" },
-			{ effort: "high" },
-			{ effort: "xhigh" },
-			{ effort: "max" },
-			{ effort: "ultra" },
-		],
+		supported_reasoning_levels: FULL_LEVELS,
 	},
 	{
 		slug: "gpt-5.6-terra",
@@ -332,12 +349,7 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
-		supported_reasoning_levels: [
-			{ effort: "low" },
-			{ effort: "medium" },
-			{ effort: "high" },
-			{ effort: "xhigh" },
-		],
+		supported_reasoning_levels: EXTENDED_LEVELS,
 	},
 	{
 		slug: "gpt-5.6-luna",
@@ -345,23 +357,32 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
-		supported_reasoning_levels: [
-			{ effort: "low" },
-			{ effort: "medium" },
-			{ effort: "high" },
-		],
+		supported_reasoning_levels: STANDARD_LEVELS,
 	},
+	{
+		slug: "gpt-5.6-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: EXTENDED_LEVELS,
+	},
+	// GPT-5.5 / 5.4 / 5.3 / 5.2 / 5.1.
 	{
 		slug: "gpt-5.5",
 		visibility: "list",
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
-		supported_reasoning_levels: [
-			{ effort: "low" },
-			{ effort: "medium" },
-			{ effort: "high" },
-		],
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5.5-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: EXTENDED_LEVELS,
 	},
 	{
 		slug: "gpt-5.4",
@@ -369,6 +390,15 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
+		supported_reasoning_levels: EXTENDED_LEVELS,
+	},
+	{
+		slug: "gpt-5.4-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: EXTENDED_LEVELS,
 	},
 	{
 		slug: "gpt-5.4-mini",
@@ -376,34 +406,7 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "low",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
-	},
-	{
-		slug: "gpt-5",
-		visibility: "hide",
-		default_reasoning_level: "medium",
-		default_reasoning_summary: "none",
-		support_verbosity: true,
-	},
-	{
-		slug: "gpt-5-mini",
-		visibility: "hide",
-		default_reasoning_level: "low",
-		default_reasoning_summary: "none",
-		support_verbosity: true,
-	},
-	{
-		slug: "gpt-5-nano",
-		visibility: "hide",
-		default_reasoning_level: "low",
-		default_reasoning_summary: "none",
-		support_verbosity: true,
-	},
-	{
-		slug: "gpt-5-codex",
-		visibility: "hide",
-		default_reasoning_level: "medium",
-		default_reasoning_summary: "none",
-		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
 	},
 	{
 		slug: "gpt-5.3-codex",
@@ -411,7 +414,90 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
+		supported_reasoning_levels: EXTENDED_LEVELS,
 	},
+	{
+		slug: "gpt-5.2",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5.2-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5.1",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5.1-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5.1-codex-mini",
+		visibility: "hide",
+		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	// GPT-5 family.
+	{
+		slug: "gpt-5",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5-mini",
+		visibility: "hide",
+		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5-nano",
+		visibility: "hide",
+		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "gpt-5-pro",
+		visibility: "hide",
+		default_reasoning_level: "high",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+		supported_reasoning_levels: reasoningLevels("high", "xhigh"),
+	},
+	// Domain-tuned variants.
 	{
 		slug: "gpt-5-cybersecurity",
 		display_name: "GPT Cybersecurity",
@@ -419,6 +505,7 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "high",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
 	},
 	{
 		slug: "gpt-5.4-cybersecurity",
@@ -427,6 +514,7 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "high",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
 	},
 	{
 		slug: "daybreak-red",
@@ -435,15 +523,81 @@ const FALLBACK_MODELS: Array<
 		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	// GPT-4 era. No reasoning controls, so none are advertised.
+	{ slug: "gpt-4.1", visibility: "hide" },
+	{ slug: "gpt-4.1-mini", visibility: "hide" },
+	{ slug: "gpt-4.1-nano", visibility: "hide" },
+	{ slug: "gpt-4o", visibility: "hide" },
+	{ slug: "gpt-4o-mini", visibility: "hide" },
+	{ slug: "gpt-4-turbo", visibility: "hide" },
+	{ slug: "gpt-4", visibility: "hide" },
+	{ slug: "gpt-3.5-turbo", visibility: "hide" },
+	// o-series reasoning models.
+	{
+		slug: "o3",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "o3-pro",
+		visibility: "hide",
+		default_reasoning_level: "high",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "o3-mini",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "o4-mini",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "o1",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
+	},
+	{
+		slug: "o1-mini",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		supported_reasoning_levels: STANDARD_LEVELS,
 	},
 ]
 
+const knownAgentModels = (): AgentModel[] =>
+	KNOWN_MODELS.map(toAgentModel).filter(
+		(model): model is AgentModel => model !== null,
+	)
+
+/**
+ * Adds the slugs the catalog did not mention. The catalog is filtered by client
+ * version, so a model the account can genuinely use is sometimes missing from
+ * it — listing it here is the difference between "the model does not exist" and
+ * "your account cannot use this one", which the picker can at least explain.
+ */
+const withKnownModels = (models: AgentModel[]): AgentModel[] => {
+	const seen = new Set(models.map((model) => model.id))
+	const extra = knownAgentModels().filter((model) => !seen.has(model.id))
+	return sortModels([...models, ...extra])
+}
+
 export const fallbackCatalog = (clientVersion: string): ModelCatalog => ({
-	models: sortModels(
-		FALLBACK_MODELS.map(toAgentModel).filter(
-			(model): model is AgentModel => model !== null,
-		),
-	),
+	models: sortModels(knownAgentModels()),
 	clientVersion,
 	source: "fallback",
 	fetchedAt: Date.now(),
@@ -482,13 +636,23 @@ export const loadCatalogCached = async (
  * Builds provider options a model will actually accept. Sending an effort it
  * does not advertise, or a reasoning summary when its default is "none", makes
  * the upstream reject the whole request.
+ *
+ * `store: false` is not optional here. The Codex transport rewrites every
+ * request to `store: false`, but the AI SDK assumes `store: true` unless it is
+ * told otherwise, and under that assumption it replays earlier assistant turns
+ * as `{ type: "item_reference", id: "msg_…" }`. Nothing is persisted upstream,
+ * so those references resolve to nothing and the whole turn fails with
+ * "Item with id 'msg_…' not found". Declaring it here makes the SDK inline the
+ * previous turns instead, which is what a stateless backend needs.
  */
+type ProviderOptionValue = string | boolean
+
 export const providerOptionsFor = (
 	model: AgentModel | undefined,
 	requestedEffort: string | undefined,
 	requestedVerbosity: string | undefined,
-): { openai: Record<string, string> } | undefined => {
-	const options: Record<string, string> = {}
+): { openai: Record<string, ProviderOptionValue> } => {
+	const options: Record<string, ProviderOptionValue> = { store: false }
 
 	if (
 		requestedEffort &&
@@ -514,5 +678,10 @@ export const providerOptionsFor = (
 		options.textVerbosity = requestedVerbosity
 	}
 
-	return Object.keys(options).length > 0 ? { openai: options } : undefined
+	return { openai: options }
 }
+
+/** The same stateless-replay guard, for one-shot calls with no history. */
+export const STATELESS_PROVIDER_OPTIONS = {
+	openai: { store: false },
+} as const

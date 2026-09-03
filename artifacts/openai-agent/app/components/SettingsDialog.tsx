@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ROLES } from "../lib/roles"
 import type { ReasoningEffort, Settings } from "../lib/types"
-import { CloseIcon, MoonIcon, SunIcon } from "./icons"
+import { CloseIcon, LockIcon, MoonIcon, SunIcon } from "./icons"
 
 const FALLBACK_EFFORTS = ["low", "medium", "high"]
 
@@ -11,15 +11,20 @@ export function SettingsDialog({
 	settings,
 	modelLevels,
 	modelLabel,
+	canChooseReasoning,
 	onClose,
 	onSave,
+	onUpgrade,
 }: {
 	settings: Settings
 	/** Effort levels the selected model advertises; anything else is rejected. */
 	modelLevels?: string[]
 	modelLabel?: string
+	/** Choosing an effort is a paid feature; the server ignores it otherwise. */
+	canChooseReasoning: boolean
 	onClose: () => void
 	onSave: (settings: Settings) => void
+	onUpgrade: () => void
 }) {
 	const efforts = [
 		"off",
@@ -112,12 +117,25 @@ export function SettingsDialog({
 						</p>
 					</div>
 
-					<div className="field">
-						<span className="fieldLabel">Reasoning effort</span>
+					<div className={`field ${canChooseReasoning ? "" : "lockedField"}`}>
+						<span className="fieldLabel">
+							Reasoning effort
+							{canChooseReasoning ? null : (
+								<button
+									className="fieldLock"
+									onClick={onUpgrade}
+									type="button"
+								>
+									<LockIcon className="icon xs" />
+									Cornia Max
+								</button>
+							)}
+						</span>
 						<div className="segmented">
 							{efforts.map((effort) => (
 								<button
 									className={draft.reasoningEffort === effort ? "selected" : ""}
+									disabled={!canChooseReasoning}
 									key={effort}
 									onClick={() =>
 										setDraft({
@@ -132,11 +150,20 @@ export function SettingsDialog({
 							))}
 						</div>
 						<p className="fieldHint">
-							Higher effort thinks longer before acting.{" "}
-							{modelLabel
-								? `These are the levels ${modelLabel} accepts.`
-								: "These levels come from the selected model."}{" "}
-							"off" leaves the choice to the model's own default.
+							{canChooseReasoning ? (
+								<>
+									Higher effort thinks longer before acting.{" "}
+									{modelLabel
+										? `These are the levels ${modelLabel} accepts.`
+										: "These levels come from the selected model."}{" "}
+									"off" leaves the choice to the model's own default.
+								</>
+							) : (
+								<>
+									On Cornia Free each model uses its own default effort. Cornia
+									Max lets you choose, per model.
+								</>
+							)}
 						</p>
 					</div>
 

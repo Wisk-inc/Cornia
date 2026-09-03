@@ -1,5 +1,7 @@
+import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
+import { clerkEnabled } from "./lib/clerk"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -44,7 +46,11 @@ export default function RootLayout({
 				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: static inline theme bootstrap */}
 				<script dangerouslySetInnerHTML={{ __html: themeScript }} />
 			</head>
-			<body>{children}</body>
+			{/* ClerkProvider belongs inside <body>, and only when a key is
+			    configured — without one the app runs with no account layer. */}
+			<body>
+				{clerkEnabled ? <ClerkProvider>{children}</ClerkProvider> : children}
+			</body>
 		</html>
 	)
 }

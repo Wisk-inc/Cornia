@@ -1,4 +1,6 @@
 import path from "node:path"
+import { requireUser } from "../../../lib/auth"
+import { requireFeature, resolveEntitlements } from "../../../lib/entitlements"
 import { errorMessage } from "../../../lib/openai"
 import { readWorkspaceBinary } from "../../../lib/workspace"
 
@@ -23,6 +25,16 @@ const MEDIA_TYPES: Record<string, string> = {
 
 /** Serves a single file out of a conversation workspace (previews, downloads). */
 export async function GET(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
+	const locked = requireFeature(await resolveEntitlements(), "workspace")
+	if (locked) {
+		return locked
+	}
+
 	const url = new URL(request.url)
 	const sessionId = url.searchParams.get("sessionId")?.trim()
 	const filePath = url.searchParams.get("path")?.trim()

@@ -1,3 +1,4 @@
+import { requireUser } from "../../lib/auth"
 import {
 	fallbackCatalog,
 	fetchModelCatalog,
@@ -17,6 +18,11 @@ export const dynamic = "force-dynamic"
  * enough to pick up a model OpenAI has just started serving this account.
  */
 export async function GET(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	try {
 		const catalog = await fetchModelCatalog(transportFromRequest(request))
 		return Response.json(

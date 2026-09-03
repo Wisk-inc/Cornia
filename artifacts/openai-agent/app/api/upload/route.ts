@@ -1,10 +1,11 @@
 import path from "node:path"
+import { requireUser } from "../../lib/auth"
+import { requireFeature, resolveEntitlements } from "../../lib/entitlements"
 import { errorMessage } from "../../lib/openai"
 import { isProbablyText, writeWorkspaceFile } from "../../lib/workspace"
 
 export const maxDuration = 60
 
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 const TEXT_PREVIEW_CHARS = 4_000
 
 const safeName = (name: string): string => {
@@ -14,6 +15,17 @@ const safeName = (name: string): string => {
 
 /** Saves an attachment straight into the conversation workspace. */
 export async function POST(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
+	const entitlements = await resolveEntitlements()
+	const locked = requireFeature(entitlements, "workspace")
+	if (locked) {
+		return locked
+	}
+
 	try {
 		const form = await request.formData()
 		const sessionId = String(form.get("sessionId") ?? "").trim()
@@ -25,9 +37,18 @@ export async function POST(request: Request) {
 				{ status: 400 },
 			)
 		}
-		if (file.size > MAX_UPLOAD_BYTES) {
+		// The ceiling is part of the plan, so a bigger file is an upgrade prompt
+		// rather than a flat refusal.
+		const limit = entitlements.plan.maxUploadBytes
+		if (file.size > limit) {
+			const megabytes = Math.round(limit / (1024 * 1024))
 			return Response.json(
-				{ error: `"${file.name}" is larger than the 25 MB upload limit.` },
+				{
+					error: `"${file.name}" is larger than the ${megabytes} MB upload limit on ${entitlements.plan.name}.`,
+					feature: "expandedUploads",
+					plan: entitlements.plan.id,
+					upgradeTo: entitlements.plan.id === "free" ? "max" : undefined,
+				},
 				{ status: 413 },
 			)
 		}

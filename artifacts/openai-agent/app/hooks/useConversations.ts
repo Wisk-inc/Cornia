@@ -95,21 +95,24 @@ export const useConversations = () => {
 		)
 	}, [])
 
+	/**
+	 * Updates in place rather than hoisting the conversation to the front. A
+	 * streaming turn calls this constantly; reordering the array on every token
+	 * re-rendered the whole app and, with the caller's effect keyed on message
+	 * identity, fed straight back into another save — React eventually gave up
+	 * with "Maximum update depth exceeded". Display order comes from
+	 * `updatedAt` instead, in `groupConversations`.
+	 */
 	const saveMessages = useCallback((id: string, messages: UIMessage[]) => {
 		setConversations((current) => {
-			const existing = current.find((item) => item.id === id)
-			if (!existing) {
+			const index = current.findIndex((item) => item.id === id)
+			const existing = current[index]
+			if (!existing || existing.messages === messages) {
 				return current
 			}
-			if (existing.messages === messages) {
-				return current
-			}
-			const updated: Conversation = {
-				...existing,
-				messages,
-				updatedAt: Date.now(),
-			}
-			return [updated, ...current.filter((item) => item.id !== id)]
+			const next = [...current]
+			next[index] = { ...existing, messages, updatedAt: Date.now() }
+			return next
 		})
 	}, [])
 
@@ -154,10 +157,13 @@ export const groupConversations = (
 		}
 	}
 
+	const newestFirst = (items: Conversation[]) =>
+		[...items].sort((left, right) => right.updatedAt - left.updatedAt)
+
 	return [
-		{ label: "Today", items: today },
-		{ label: "Previous 7 days", items: week },
-		{ label: "Previous 30 days", items: month },
-		{ label: "Older", items: older },
+		{ label: "Today", items: newestFirst(today) },
+		{ label: "Previous 7 days", items: newestFirst(week) },
+		{ label: "Previous 30 days", items: newestFirst(month) },
+		{ label: "Older", items: newestFirst(older) },
 	].filter((group) => group.items.length > 0)
 }
