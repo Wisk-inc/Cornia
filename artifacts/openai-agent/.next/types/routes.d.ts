@@ -6,12 +6,13 @@ type AppRouteHandlerRoutes = "/api/chat" | "/api/image" | "/api/models" | "/api/
 type PageRoutes = never
 type LayoutRoutes = "/"
 type RedirectRoutes = never
-type RewriteRoutes = never
+type RewriteRoutes = "/agent-api/[[...path]]"
 type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
 
 
 interface ParamMap {
   "/": {}
+  "/agent-api/[[...path]]": { "path"?: string[]; }
   "/api/chat": {}
   "/api/image": {}
   "/api/models": {}

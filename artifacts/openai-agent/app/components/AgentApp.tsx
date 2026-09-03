@@ -57,7 +57,7 @@ const readSettings = (): Settings => {
 }
 
 export function AgentApp() {
-	const auth = useSignInWithChatGPT()
+	const auth = useSignInWithChatGPT({ openMode: "popup" })
 	const isSignedIn = auth.status === "signed-in"
 
 	const { conversations, loaded, upsert, patch, saveMessages, remove } =

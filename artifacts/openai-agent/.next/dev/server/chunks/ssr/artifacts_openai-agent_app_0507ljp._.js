@@ -5382,15 +5382,15 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             "This is taking longer than expected. If a popup was blocked, allow popups for this site and",
                             " ",
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: onSignIn,
+                                onClick: onCancel,
                                 type: "button",
-                                children: "try again"
+                                children: "reset sign-in"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
                                 lineNumber: 157,
                                 columnNumber: 7
                             }, this),
-                            ". Hosted apps also need the Sign in with ChatGPT extension."
+                            ". Then try again in a real browser tab. Hosted apps also need the Sign in with ChatGPT extension."
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
@@ -5413,7 +5413,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 167,
+                        lineNumber: 168,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5426,19 +5426,19 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 children: "Try again"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 170,
+                                lineNumber: 171,
                                 columnNumber: 7
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 168,
+                        lineNumber: 169,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 166,
+                lineNumber: 167,
                 columnNumber: 5
             }, this) : null
         ]
@@ -5504,7 +5504,9 @@ const readSettings = ()=>{
     ;
 };
 function AgentApp() {
-    const auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f40$openai$2d$oauth$2b$react$40$2$2e$0$2e$0_react$40$19$2e$1$2e$0$2f$node_modules$2f40$openai$2d$oauth$2f$react$2f$dist$2f$useSignInWithChatGPT$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useSignInWithChatGPT"])();
+    const auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f40$openai$2d$oauth$2b$react$40$2$2e$0$2e$0_react$40$19$2e$1$2e$0$2f$node_modules$2f40$openai$2d$oauth$2f$react$2f$dist$2f$useSignInWithChatGPT$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useSignInWithChatGPT"])({
+        openMode: "popup"
+    });
     const isSignedIn = auth.status === "signed-in";
     const { conversations, loaded, upsert, patch, saveMessages, remove } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$hooks$2f$useConversations$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useConversations"])();
     const models = (0, __TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$hooks$2f$useModels$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useModels"])(isSignedIn);

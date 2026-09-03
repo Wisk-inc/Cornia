@@ -111,7 +111,8 @@ self.__SERVER_FILES_MANIFEST={
       "*.replit.dev",
       "*.repl.co",
       "*.app.github.dev",
-      "*.gitpod.io"
+      "*.gitpod.io",
+      "985da172-5c73-424a-ba93-3d7c8f186f9a-00-3aer0p5oj5lpk.worf.replit.dev"
     ],
     "cacheComponents": false,
     "cacheLife": {
@@ -319,7 +320,17 @@ self.__SERVER_FILES_MANIFEST={
     "turbopack": {
       "root": "/home/runner/workspace"
     },
-    "distDirRoot": ".next"
+    "distDirRoot": ".next",
+    "_originalRewrites": {
+      "beforeFiles": [],
+      "afterFiles": [
+        {
+          "source": "/agent-api/:path*",
+          "destination": "/api/:path*"
+        }
+      ],
+      "fallback": []
+    }
   },
   "appDir": "/home/runner/workspace/artifacts/openai-agent",
   "relativeAppDir": "artifacts/openai-agent",

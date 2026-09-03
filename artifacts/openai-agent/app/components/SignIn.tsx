@@ -154,10 +154,11 @@ export function SignIn({
 					<span>
 						This is taking longer than expected. If a popup was blocked, allow
 						popups for this site and{" "}
-						<button onClick={onSignIn} type="button">
-							try again
+						<button onClick={onCancel} type="button">
+							reset sign-in
 						</button>
-						. Hosted apps also need the Sign in with ChatGPT extension.
+						. Then try again in a real browser tab. Hosted apps also need the
+						Sign in with ChatGPT extension.
 					</span>
 				</div>
 			) : null}
