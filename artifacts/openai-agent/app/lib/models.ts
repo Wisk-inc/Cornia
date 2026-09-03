@@ -136,7 +136,14 @@ const describeModel = (model: AgentModel): string => {
 }
 
 const toAgentModel = (raw: Record<string, unknown>): AgentModel | null => {
-	const id = typeof raw.slug === "string" ? raw.slug : undefined
+	const id =
+		typeof raw.slug === "string"
+			? raw.slug
+			: typeof raw.id === "string"
+				? raw.id
+				: typeof raw.model === "string"
+					? raw.model
+				: undefined
 	if (!id || /image|audio|tts|whisper|embed|moderation/i.test(id)) {
 		return null
 	}
@@ -166,7 +173,10 @@ const toAgentModel = (raw: Record<string, unknown>): AgentModel | null => {
 
 	const model: AgentModel = {
 		id,
-		label: prettyModelLabel(id),
+		label:
+			(typeof raw.display_name === "string" && raw.display_name.trim()) ||
+			(typeof raw.name === "string" && raw.name.trim()) ||
+			prettyModelLabel(id),
 		description: "",
 		group: experimental ? "experimental" : "standard",
 		experimental,
@@ -364,6 +374,65 @@ const FALLBACK_MODELS: Array<
 		slug: "gpt-5.4-mini",
 		visibility: "hide",
 		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5-mini",
+		visibility: "hide",
+		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5-nano",
+		visibility: "hide",
+		default_reasoning_level: "low",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5.3-codex",
+		visibility: "hide",
+		default_reasoning_level: "medium",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5-cybersecurity",
+		display_name: "GPT Cybersecurity",
+		visibility: "hide",
+		default_reasoning_level: "high",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "gpt-5.4-cybersecurity",
+		display_name: "GPT-5.4 Cybersecurity",
+		visibility: "hide",
+		default_reasoning_level: "high",
+		default_reasoning_summary: "none",
+		support_verbosity: true,
+	},
+	{
+		slug: "daybreak-red",
+		display_name: "Daybreak Red",
+		visibility: "hide",
+		default_reasoning_level: "medium",
 		default_reasoning_summary: "none",
 		support_verbosity: true,
 	},

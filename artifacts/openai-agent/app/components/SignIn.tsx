@@ -45,6 +45,12 @@ export function SignIn({
 	const busy =
 		status === "checking" || status === "starting" || status === "redirecting"
 	const [stuck, setStuck] = useState(false)
+	const [embedded, setEmbedded] = useState(false)
+	const [tabOpenFailed, setTabOpenFailed] = useState(false)
+
+	useEffect(() => {
+		setEmbedded(window.top !== window.self)
+	}, [])
 
 	// A hosted app that never comes back should say so instead of spinning.
 	useEffect(() => {
@@ -55,6 +61,21 @@ export function SignIn({
 		const timer = window.setTimeout(() => setStuck(true), STUCK_AFTER_MS)
 		return () => window.clearTimeout(timer)
 	}, [busy])
+
+	const handleSignIn = () => {
+		if (embedded) {
+			const tab = window.open(window.location.href, "_blank")
+			if (!tab) {
+				setTabOpenFailed(true)
+				return
+			}
+			tab.opener = null
+			setTabOpenFailed(false)
+			return
+		}
+		setTabOpenFailed(false)
+		onSignIn()
+	}
 
 	// Hosted apps (Replit, Vercel, anything that is not localhost) complete the
 	// OAuth handoff through the Sign in with ChatGPT extension.
@@ -86,7 +107,7 @@ export function SignIn({
 					>
 						Install the extension
 					</a>
-					<button className="buttonGhost" onClick={onSignIn} type="button">
+					<button className="buttonGhost" onClick={handleSignIn} type="button">
 						<CheckIcon className="icon sm" />
 						I've installed it — continue
 					</button>
@@ -131,7 +152,7 @@ export function SignIn({
 			<button
 				className="buttonPrimary"
 				disabled={busy}
-				onClick={onSignIn}
+				onClick={handleSignIn}
 				style={{ marginTop: 18, height: 48, padding: "0 22px", fontSize: 16 }}
 				type="button"
 			>
@@ -142,6 +163,26 @@ export function SignIn({
 				)}
 				{busy ? "Connecting…" : "Sign in with ChatGPT"}
 			</button>
+
+			{embedded ? (
+				<div className="errorBanner" style={{ maxWidth: 460, marginTop: 14 }}>
+					<WarningIcon className="icon sm" />
+					<span>
+						Sign-in must finish in a real browser tab. Use the preview's
+						open-in-new-tab control, then start sign-in there.
+					</span>
+				</div>
+			) : null}
+
+			{tabOpenFailed ? (
+				<div className="errorBanner" style={{ maxWidth: 460, marginTop: 14 }}>
+					<WarningIcon className="icon sm" />
+					<span>
+						Your browser blocked the new tab. Use the preview's open-in-new-tab
+						control, then start sign-in there.
+					</span>
+				</div>
+			) : null}
 
 			<span className="signInNote">
 				<LockIcon className="icon xs" />
@@ -168,7 +209,7 @@ export function SignIn({
 					<WarningIcon className="icon sm" />
 					<span>
 						{error}{" "}
-						<button onClick={onSignIn} type="button">
+						<button onClick={handleSignIn} type="button">
 							Try again
 						</button>
 					</span>

@@ -5134,6 +5134,11 @@ const storeName = (installUrl)=>installUrl.includes("addons.mozilla.org") ? "Fir
 function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
     const busy = status === "checking" || status === "starting" || status === "redirecting";
     const [stuck, setStuck] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [embedded, setEmbedded] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [tabOpenFailed, setTabOpenFailed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        setEmbedded(window.top !== window.self);
+    }, []);
     // A hosted app that never comes back should say so instead of spinning.
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!busy) {
@@ -5145,6 +5150,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
     }, [
         busy
     ]);
+    const handleSignIn = ()=>{
+        if (embedded) {
+            const tab = window.open(window.location.href, "_blank");
+            if (!tab) {
+                setTabOpenFailed(true);
+                return;
+            }
+            tab.opener = null;
+            setTabOpenFailed(false);
+            return;
+        }
+        setTabOpenFailed(false);
+        onSignIn();
+    };
     // Hosted apps (Replit, Vercel, anything that is not localhost) complete the
     // OAuth handoff through the Sign in with ChatGPT extension.
     if (status === "needs-extension" && installUrl) {
@@ -5155,14 +5174,14 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     className: "icon"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 64,
+                    lineNumber: 85,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                     children: "One more step"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 65,
+                    lineNumber: 86,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5172,7 +5191,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             children: "Sign in with ChatGPT"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 68,
+                            lineNumber: 89,
                             columnNumber: 18
                         }, this),
                         " extension. Install it once from ",
@@ -5181,7 +5200,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 66,
+                    lineNumber: 87,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5201,32 +5220,32 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             children: "Install the extension"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 81,
+                            lineNumber: 102,
                             columnNumber: 6
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                             className: "buttonGhost",
-                            onClick: onSignIn,
+                            onClick: handleSignIn,
                             type: "button",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CheckIcon"], {
                                     className: "icon sm"
                                 }, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                    lineNumber: 90,
+                                    lineNumber: 111,
                                     columnNumber: 7
                                 }, this),
                                 "I've installed it — continue"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 89,
+                            lineNumber: 110,
                             columnNumber: 6
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 72,
+                    lineNumber: 93,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5240,7 +5259,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     children: "Cancel"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 95,
+                    lineNumber: 116,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5250,20 +5269,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             className: "icon xs"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 105,
+                            lineNumber: 126,
                             columnNumber: 6
                         }, this),
                         "Running it locally with `bun run dev` needs no extension."
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 104,
+                    lineNumber: 125,
                     columnNumber: 5
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-            lineNumber: 63,
+            lineNumber: 84,
             columnNumber: 4
         }, this);
     }
@@ -5274,21 +5293,21 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                 className: "icon"
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 114,
+                lineNumber: 135,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                 children: "Your own coding agent"
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 115,
+                lineNumber: 136,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                 children: "A ChatGPT-style workspace that plans, writes code, runs it in a sandbox and searches the web — powered by your own ChatGPT account, with no API key."
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 116,
+                lineNumber: 137,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5300,25 +5319,25 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 className: "icon sm"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 125,
+                                lineNumber: 146,
                                 columnNumber: 7
                             }, this),
                             feature.label
                         ]
                     }, feature.label, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 124,
+                        lineNumber: 145,
                         columnNumber: 6
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 122,
+                lineNumber: 143,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                 className: "buttonPrimary",
                 disabled: busy,
-                onClick: onSignIn,
+                onClick: handleSignIn,
                 style: {
                     marginTop: 18,
                     height: 48,
@@ -5331,22 +5350,76 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm spin"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 139,
+                        lineNumber: 160,
                         columnNumber: 6
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BrandIcon"], {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 141,
+                        lineNumber: 162,
                         columnNumber: 6
                     }, this),
                     busy ? "Connecting…" : "Sign in with ChatGPT"
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 131,
+                lineNumber: 152,
                 columnNumber: 4
             }, this),
+            embedded ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "errorBanner",
+                style: {
+                    maxWidth: 460,
+                    marginTop: 14
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["WarningIcon"], {
+                        className: "icon sm"
+                    }, void 0, false, {
+                        fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                        lineNumber: 169,
+                        columnNumber: 6
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                        children: "Sign-in must finish in a real browser tab. Use the preview's open-in-new-tab control, then start sign-in there."
+                    }, void 0, false, {
+                        fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                        lineNumber: 170,
+                        columnNumber: 6
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                lineNumber: 168,
+                columnNumber: 5
+            }, this) : null,
+            tabOpenFailed ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "errorBanner",
+                style: {
+                    maxWidth: 460,
+                    marginTop: 14
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["WarningIcon"], {
+                        className: "icon sm"
+                    }, void 0, false, {
+                        fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                        lineNumber: 179,
+                        columnNumber: 6
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                        children: "Your browser blocked the new tab. Use the preview's open-in-new-tab control, then start sign-in there."
+                    }, void 0, false, {
+                        fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                        lineNumber: 180,
+                        columnNumber: 6
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                lineNumber: 178,
+                columnNumber: 5
+            }, this) : null,
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: "signInNote",
                 children: [
@@ -5354,14 +5427,14 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon xs"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 147,
+                        lineNumber: 188,
                         columnNumber: 5
                     }, this),
                     "Credentials are encrypted and stored only in this browser."
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 146,
+                lineNumber: 187,
                 columnNumber: 4
             }, this),
             stuck ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5374,7 +5447,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 153,
+                        lineNumber: 194,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5387,20 +5460,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 children: "reset sign-in"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 157,
+                                lineNumber: 198,
                                 columnNumber: 7
                             }, this),
                             ". Then try again in a real browser tab. Hosted apps also need the Sign in with ChatGPT extension."
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 154,
+                        lineNumber: 195,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 152,
+                lineNumber: 193,
                 columnNumber: 5
             }, this) : null,
             error ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5413,7 +5486,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 168,
+                        lineNumber: 209,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5421,30 +5494,30 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             error,
                             " ",
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: onSignIn,
+                                onClick: handleSignIn,
                                 type: "button",
                                 children: "Try again"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 171,
+                                lineNumber: 212,
                                 columnNumber: 7
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 169,
+                        lineNumber: 210,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 167,
+                lineNumber: 208,
                 columnNumber: 5
             }, this) : null
         ]
     }, void 0, true, {
         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-        lineNumber: 113,
+        lineNumber: 134,
         columnNumber: 3
     }, this);
 }
@@ -5505,7 +5578,8 @@ const readSettings = ()=>{
 };
 function AgentApp() {
     const auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f40$openai$2d$oauth$2b$react$40$2$2e$0$2e$0_react$40$19$2e$1$2e$0$2f$node_modules$2f40$openai$2d$oauth$2f$react$2f$dist$2f$useSignInWithChatGPT$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useSignInWithChatGPT"])({
-        openMode: "popup"
+        callbackPath: "/auth/callback",
+        openMode: "redirect"
     });
     const isSignedIn = auth.status === "signed-in";
     const { conversations, loaded, upsert, patch, saveMessages, remove } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$hooks$2f$useConversations$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useConversations"])();
@@ -5635,7 +5709,7 @@ function AgentApp() {
             status: auth.status
         }, void 0, false, {
             fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-            lineNumber: 191,
+            lineNumber: 194,
             columnNumber: 4
         }, this);
     }
@@ -5667,7 +5741,7 @@ function AgentApp() {
                 onToggle: ()=>setSidebarCollapsed(true)
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                lineNumber: 208,
+                lineNumber: 211,
                 columnNumber: 4
             }, this),
             !sidebarCollapsed ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5677,7 +5751,7 @@ function AgentApp() {
                 type: "button"
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                lineNumber: 230,
+                lineNumber: 233,
                 columnNumber: 5
             }, this) : null,
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5695,12 +5769,12 @@ function AgentApp() {
                                         type: "button",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarIcon"], {}, void 0, false, {
                                             fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                            lineNumber: 248,
+                                            lineNumber: 251,
                                             columnNumber: 9
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                        lineNumber: 242,
+                                        lineNumber: 245,
                                         columnNumber: 8
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5710,12 +5784,12 @@ function AgentApp() {
                                         type: "button",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["NewChatIcon"], {}, void 0, false, {
                                             fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                            lineNumber: 256,
+                                            lineNumber: 259,
                                             columnNumber: 9
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                        lineNumber: 250,
+                                        lineNumber: 253,
                                         columnNumber: 8
                                     }, this)
                                 ]
@@ -5726,14 +5800,14 @@ function AgentApp() {
                                 value: model
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 261,
+                                lineNumber: 264,
                                 columnNumber: 6
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "topBarSpacer"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 263,
+                                lineNumber: 266,
                                 columnNumber: 6
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5746,7 +5820,7 @@ function AgentApp() {
                                         className: "icon sm"
                                     }, void 0, false, {
                                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                        lineNumber: 271,
+                                        lineNumber: 274,
                                         columnNumber: 7
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5754,13 +5828,13 @@ function AgentApp() {
                                         children: roleName
                                     }, void 0, false, {
                                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                        lineNumber: 272,
+                                        lineNumber: 275,
                                         columnNumber: 7
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 265,
+                                lineNumber: 268,
                                 columnNumber: 6
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5772,12 +5846,12 @@ function AgentApp() {
                                 type: "button",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DownloadIcon"], {}, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                    lineNumber: 284,
+                                    lineNumber: 287,
                                     columnNumber: 7
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 274,
+                                lineNumber: 277,
                                 columnNumber: 6
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5790,16 +5864,16 @@ function AgentApp() {
                                 type: "button",
                                 children: settings.theme === "dark" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SunIcon"], {}, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                    lineNumber: 297,
+                                    lineNumber: 300,
                                     columnNumber: 36
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MoonIcon"], {}, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                    lineNumber: 297,
+                                    lineNumber: 300,
                                     columnNumber: 50
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 286,
+                                lineNumber: 289,
                                 columnNumber: 6
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5809,18 +5883,18 @@ function AgentApp() {
                                 type: "button",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FolderIcon"], {}, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                    lineNumber: 305,
+                                    lineNumber: 308,
                                     columnNumber: 7
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                                lineNumber: 299,
+                                lineNumber: 302,
                                 columnNumber: 6
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                        lineNumber: 239,
+                        lineNumber: 242,
                         columnNumber: 5
                     }, this),
                     conversation ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$ChatView$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ChatView"], {
@@ -5833,13 +5907,13 @@ function AgentApp() {
                         settings: settings
                     }, conversation.id, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                        lineNumber: 310,
+                        lineNumber: 313,
                         columnNumber: 6
                     }, this) : null
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                lineNumber: 238,
+                lineNumber: 241,
                 columnNumber: 4
             }, this),
             filesOpen && conversation ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$FilesPanel$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FilesPanel"], {
@@ -5848,7 +5922,7 @@ function AgentApp() {
                 sessionId: conversation.id
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                lineNumber: 324,
+                lineNumber: 327,
                 columnNumber: 5
             }, this) : null,
             settingsOpen ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$SettingsDialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SettingsDialog"], {
@@ -5862,13 +5936,13 @@ function AgentApp() {
                 settings: settings
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-                lineNumber: 332,
+                lineNumber: 335,
                 columnNumber: 5
             }, this) : null
         ]
     }, void 0, true, {
         fileName: "[project]/artifacts/openai-agent/app/components/AgentApp.tsx",
-        lineNumber: 207,
+        lineNumber: 210,
         columnNumber: 3
     }, this);
 }
