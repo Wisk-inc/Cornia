@@ -40,16 +40,18 @@ export function SignIn({
 	error?: string
 	installUrl?: string
 	onSignIn: () => void
-	onCancel: () => void
+	onCancel: () => Promise<void> | void
 }) {
 	const busy =
 		status === "checking" || status === "starting" || status === "redirecting"
 	const [stuck, setStuck] = useState(false)
 	const [embedded, setEmbedded] = useState(false)
 	const [tabOpenFailed, setTabOpenFailed] = useState(false)
+	const [tabUrl, setTabUrl] = useState("")
 
 	useEffect(() => {
 		setEmbedded(window.top !== window.self)
+		setTabUrl(window.location.href)
 	}, [])
 
 	// A hosted app that never comes back should say so instead of spinning.
@@ -62,9 +64,9 @@ export function SignIn({
 		return () => window.clearTimeout(timer)
 	}, [busy])
 
-	const handleSignIn = () => {
+	const handleSignIn = async () => {
 		if (embedded) {
-			const tab = window.open(window.location.href, "_blank")
+			const tab = window.open(tabUrl || window.location.href, "_blank")
 			if (!tab) {
 				setTabOpenFailed(true)
 				return
@@ -72,6 +74,10 @@ export function SignIn({
 			tab.opener = null
 			setTabOpenFailed(false)
 			return
+		}
+		if (stuck) {
+			await onCancel()
+			setStuck(false)
 		}
 		setTabOpenFailed(false)
 		onSignIn()
@@ -111,6 +117,16 @@ export function SignIn({
 						<CheckIcon className="icon sm" />
 						I've installed it — continue
 					</button>
+					{embedded && tabUrl ? (
+						<a
+							className="buttonGhost"
+							href={tabUrl}
+							rel="noreferrer noopener"
+							target="_blank"
+						>
+							Open in a new tab
+						</a>
+					) : null}
 				</div>
 
 				<button
@@ -151,17 +167,17 @@ export function SignIn({
 
 			<button
 				className="buttonPrimary"
-				disabled={busy}
-				onClick={handleSignIn}
+				disabled={busy && !stuck}
+				onClick={() => void handleSignIn()}
 				style={{ marginTop: 18, height: 48, padding: "0 22px", fontSize: 16 }}
 				type="button"
 			>
-				{busy ? (
+				{busy && !stuck ? (
 					<SpinnerIcon className="icon sm spin" />
 				) : (
 					<BrandIcon className="icon sm" />
 				)}
-				{busy ? "Connecting…" : "Sign in with ChatGPT"}
+				{stuck ? "Try sign-in again" : busy ? "Connecting…" : "Sign in with ChatGPT"}
 			</button>
 
 			{embedded ? (
@@ -169,7 +185,7 @@ export function SignIn({
 					<WarningIcon className="icon sm" />
 					<span>
 						Sign-in must finish in a real browser tab. Use the preview's
-						open-in-new-tab control, then start sign-in there.
+						open-in-new-tab control, or use the link below.
 					</span>
 				</div>
 			) : null}
@@ -179,9 +195,21 @@ export function SignIn({
 					<WarningIcon className="icon sm" />
 					<span>
 						Your browser blocked the new tab. Use the preview's open-in-new-tab
-						control, then start sign-in there.
+						control, or use the direct link below.
 					</span>
 				</div>
+			) : null}
+
+			{embedded && tabUrl ? (
+				<a
+					className="buttonGhost"
+					href={tabUrl}
+					rel="noreferrer noopener"
+					style={{ marginTop: 12 }}
+					target="_blank"
+				>
+					Open this app in a new tab
+				</a>
 			) : null}
 
 			<span className="signInNote">

@@ -5136,8 +5136,10 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
     const [stuck, setStuck] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [embedded, setEmbedded] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [tabOpenFailed, setTabOpenFailed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [tabUrl, setTabUrl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         setEmbedded(window.top !== window.self);
+        setTabUrl(window.location.href);
     }, []);
     // A hosted app that never comes back should say so instead of spinning.
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -5150,9 +5152,9 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
     }, [
         busy
     ]);
-    const handleSignIn = ()=>{
+    const handleSignIn = async ()=>{
         if (embedded) {
-            const tab = window.open(window.location.href, "_blank");
+            const tab = window.open(tabUrl || window.location.href, "_blank");
             if (!tab) {
                 setTabOpenFailed(true);
                 return;
@@ -5160,6 +5162,10 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
             tab.opener = null;
             setTabOpenFailed(false);
             return;
+        }
+        if (stuck) {
+            await onCancel();
+            setStuck(false);
         }
         setTabOpenFailed(false);
         onSignIn();
@@ -5174,14 +5180,14 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     className: "icon"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 85,
+                    lineNumber: 91,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                     children: "One more step"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 86,
+                    lineNumber: 92,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5191,7 +5197,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             children: "Sign in with ChatGPT"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 89,
+                            lineNumber: 95,
                             columnNumber: 18
                         }, this),
                         " extension. Install it once from ",
@@ -5200,7 +5206,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 87,
+                    lineNumber: 93,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5220,7 +5226,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             children: "Install the extension"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 102,
+                            lineNumber: 108,
                             columnNumber: 6
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5232,20 +5238,31 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                     className: "icon sm"
                                 }, void 0, false, {
                                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                    lineNumber: 111,
+                                    lineNumber: 117,
                                     columnNumber: 7
                                 }, this),
                                 "I've installed it — continue"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 110,
+                            lineNumber: 116,
                             columnNumber: 6
-                        }, this)
+                        }, this),
+                        embedded && tabUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                            className: "buttonGhost",
+                            href: tabUrl,
+                            rel: "noreferrer noopener",
+                            target: "_blank",
+                            children: "Open in a new tab"
+                        }, void 0, false, {
+                            fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                            lineNumber: 121,
+                            columnNumber: 7
+                        }, this) : null
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 93,
+                    lineNumber: 99,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5259,7 +5276,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                     children: "Cancel"
                 }, void 0, false, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 116,
+                    lineNumber: 132,
                     columnNumber: 5
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5269,20 +5286,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                             className: "icon xs"
                         }, void 0, false, {
                             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                            lineNumber: 126,
+                            lineNumber: 142,
                             columnNumber: 6
                         }, this),
                         "Running it locally with `bun run dev` needs no extension."
                     ]
                 }, void 0, true, {
                     fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                    lineNumber: 125,
+                    lineNumber: 141,
                     columnNumber: 5
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-            lineNumber: 84,
+            lineNumber: 90,
             columnNumber: 4
         }, this);
     }
@@ -5293,21 +5310,21 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                 className: "icon"
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 135,
+                lineNumber: 151,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                 children: "Your own coding agent"
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 136,
+                lineNumber: 152,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                 children: "A ChatGPT-style workspace that plans, writes code, runs it in a sandbox and searches the web — powered by your own ChatGPT account, with no API key."
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 137,
+                lineNumber: 153,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5319,25 +5336,25 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 className: "icon sm"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 146,
+                                lineNumber: 162,
                                 columnNumber: 7
                             }, this),
                             feature.label
                         ]
                     }, feature.label, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 145,
+                        lineNumber: 161,
                         columnNumber: 6
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 143,
+                lineNumber: 159,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                 className: "buttonPrimary",
-                disabled: busy,
-                onClick: handleSignIn,
+                disabled: busy && !stuck,
+                onClick: ()=>void handleSignIn(),
                 style: {
                     marginTop: 18,
                     height: 48,
@@ -5346,24 +5363,24 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                 },
                 type: "button",
                 children: [
-                    busy ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SpinnerIcon"], {
+                    busy && !stuck ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SpinnerIcon"], {
                         className: "icon sm spin"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 160,
+                        lineNumber: 176,
                         columnNumber: 6
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$icons$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BrandIcon"], {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 162,
+                        lineNumber: 178,
                         columnNumber: 6
                     }, this),
-                    busy ? "Connecting…" : "Sign in with ChatGPT"
+                    stuck ? "Try sign-in again" : busy ? "Connecting…" : "Sign in with ChatGPT"
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 152,
+                lineNumber: 168,
                 columnNumber: 4
             }, this),
             embedded ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5377,20 +5394,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 169,
+                        lineNumber: 185,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        children: "Sign-in must finish in a real browser tab. Use the preview's open-in-new-tab control, then start sign-in there."
+                        children: "Sign-in must finish in a real browser tab. Use the preview's open-in-new-tab control, or use the link below."
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 170,
+                        lineNumber: 186,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 168,
+                lineNumber: 184,
                 columnNumber: 5
             }, this) : null,
             tabOpenFailed ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5404,20 +5421,34 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 179,
+                        lineNumber: 195,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        children: "Your browser blocked the new tab. Use the preview's open-in-new-tab control, then start sign-in there."
+                        children: "Your browser blocked the new tab. Use the preview's open-in-new-tab control, or use the direct link below."
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 180,
+                        lineNumber: 196,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 178,
+                lineNumber: 194,
+                columnNumber: 5
+            }, this) : null,
+            embedded && tabUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                className: "buttonGhost",
+                href: tabUrl,
+                rel: "noreferrer noopener",
+                style: {
+                    marginTop: 12
+                },
+                target: "_blank",
+                children: "Open this app in a new tab"
+            }, void 0, false, {
+                fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
+                lineNumber: 204,
                 columnNumber: 5
             }, this) : null,
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5427,14 +5458,14 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon xs"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 188,
+                        lineNumber: 216,
                         columnNumber: 5
                     }, this),
                     "Credentials are encrypted and stored only in this browser."
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 187,
+                lineNumber: 215,
                 columnNumber: 4
             }, this),
             stuck ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5447,7 +5478,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 194,
+                        lineNumber: 222,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5460,20 +5491,20 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 children: "reset sign-in"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 198,
+                                lineNumber: 226,
                                 columnNumber: 7
                             }, this),
                             ". Then try again in a real browser tab. Hosted apps also need the Sign in with ChatGPT extension."
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 195,
+                        lineNumber: 223,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 193,
+                lineNumber: 221,
                 columnNumber: 5
             }, this) : null,
             error ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5486,7 +5517,7 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                         className: "icon sm"
                     }, void 0, false, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 209,
+                        lineNumber: 237,
                         columnNumber: 6
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5499,25 +5530,25 @@ function SignIn({ status, error, installUrl, onSignIn, onCancel }) {
                                 children: "Try again"
                             }, void 0, false, {
                                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                                lineNumber: 212,
+                                lineNumber: 240,
                                 columnNumber: 7
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                        lineNumber: 210,
+                        lineNumber: 238,
                         columnNumber: 6
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-                lineNumber: 208,
+                lineNumber: 236,
                 columnNumber: 5
             }, this) : null
         ]
     }, void 0, true, {
         fileName: "[project]/artifacts/openai-agent/app/components/SignIn.tsx",
-        lineNumber: 134,
+        lineNumber: 150,
         columnNumber: 3
     }, this);
 }
@@ -5704,7 +5735,7 @@ function AgentApp() {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$2$2e$10_$40$opentelemetry$2b$api$40$1$2e$9$2e$0_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$artifacts$2f$openai$2d$agent$2f$app$2f$components$2f$SignIn$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SignIn"], {
             error: auth.error?.message,
             installUrl: auth.status === "needs-extension" ? auth.installUrl : undefined,
-            onCancel: ()=>void auth.reset(),
+            onCancel: ()=>auth.reset(),
             onSignIn: ()=>void auth.login(),
             status: auth.status
         }, void 0, false, {
