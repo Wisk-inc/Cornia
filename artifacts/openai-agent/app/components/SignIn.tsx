@@ -39,7 +39,7 @@ export function SignIn({
 	status: string
 	error?: string
 	installUrl?: string
-	onSignIn: () => void
+	onSignIn: () => Promise<void> | void
 	onCancel: () => Promise<void> | void
 }) {
 	const busy =
@@ -48,6 +48,8 @@ export function SignIn({
 	const [embedded, setEmbedded] = useState(false)
 	const [tabOpenFailed, setTabOpenFailed] = useState(false)
 	const [tabUrl, setTabUrl] = useState("")
+	const [checkingExtension, setCheckingExtension] = useState(false)
+	const [extensionMessage, setExtensionMessage] = useState("")
 
 	useEffect(() => {
 		setEmbedded(window.top !== window.self)
@@ -63,6 +65,19 @@ export function SignIn({
 		const timer = window.setTimeout(() => setStuck(true), STUCK_AFTER_MS)
 		return () => window.clearTimeout(timer)
 	}, [busy])
+
+	useEffect(() => {
+		if (!checkingExtension) {
+			return
+		}
+		const timer = window.setTimeout(() => {
+			setCheckingExtension(false)
+			setExtensionMessage(
+				"The extension was not detected in this browser tab. Make sure it is enabled for this site, then try again in a real browser tab.",
+			)
+		}, 2_500)
+		return () => window.clearTimeout(timer)
+	}, [checkingExtension])
 
 	const handleSignIn = async () => {
 		if (embedded) {
@@ -81,6 +96,12 @@ export function SignIn({
 		}
 		setTabOpenFailed(false)
 		onSignIn()
+	}
+
+	const handleExtensionContinue = () => {
+		setCheckingExtension(true)
+		setExtensionMessage("")
+		void onSignIn()
 	}
 
 	// Hosted apps (Replit, Vercel, anything that is not localhost) complete the
@@ -113,21 +134,41 @@ export function SignIn({
 					>
 						Install the extension
 					</a>
-					<button className="buttonGhost" onClick={handleSignIn} type="button">
-						<CheckIcon className="icon sm" />
-						I've installed it — continue
-					</button>
 					{embedded && tabUrl ? (
 						<a
-							className="buttonGhost"
+							className="buttonPrimary"
 							href={tabUrl}
 							rel="noreferrer noopener"
 							target="_blank"
 						>
-							Open in a new tab
+							<CheckIcon className="icon sm" />
+							Continue in a new tab
 						</a>
-					) : null}
+					) : (
+						<button
+							className="buttonGhost"
+							disabled={checkingExtension}
+							onClick={handleExtensionContinue}
+							type="button"
+						>
+							{checkingExtension ? (
+								<SpinnerIcon className="icon sm spin" />
+							) : (
+								<CheckIcon className="icon sm" />
+							)}
+							{checkingExtension
+								? "Checking extension…"
+								: "I've installed it — continue"}
+						</button>
+					)}
 				</div>
+
+				{extensionMessage ? (
+					<div className="errorBanner" style={{ maxWidth: 460, marginTop: 14 }}>
+						<WarningIcon className="icon sm" />
+						<span>{extensionMessage}</span>
+					</div>
+				) : null}
 
 				<button
 					className="buttonGhost"
