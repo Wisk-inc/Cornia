@@ -5,12 +5,16 @@ import { groupConversations } from "../hooks/useConversations"
 import type { Conversation } from "../lib/types"
 import {
 	BrandIcon,
+	ChartIcon,
+	CodeIcon,
 	DownloadIcon,
 	FolderIcon,
+	LockIcon,
 	NewChatIcon,
 	SearchIcon,
 	SettingsIcon,
 	SidebarIcon,
+	SignOutIcon,
 	TrashIcon,
 	UserIcon,
 } from "./icons"
@@ -20,6 +24,9 @@ export function Sidebar({
 	activeId,
 	collapsed,
 	accountLabel,
+	planName,
+	corniaCode,
+	onUpgrade,
 	onNewChat,
 	onSelect,
 	onRename,
@@ -34,6 +41,10 @@ export function Sidebar({
 	activeId?: string
 	collapsed: boolean
 	accountLabel: string
+	planName: string
+	/** Cornia Code is Max-only; without it the row becomes an upgrade prompt. */
+	corniaCode: boolean
+	onUpgrade: () => void
 	onNewChat: () => void
 	onSelect: (id: string) => void
 	onRename: (id: string, title: string) => void
@@ -180,6 +191,29 @@ export function Sidebar({
 			</div>
 
 			<div className="sidebarFooter">
+				{corniaCode ? (
+					<a className="sidebarItem" href="/code">
+						<CodeIcon className="icon sm" />
+						Cornia Code
+					</a>
+				) : (
+					<button
+						className="sidebarItem locked"
+						onClick={onUpgrade}
+						type="button"
+					>
+						<CodeIcon className="icon sm" />
+						Cornia Code
+						<span className="badge locked sidebarBadge">
+							<LockIcon className="icon xs" />
+							Max
+						</span>
+					</button>
+				)}
+				<a className="sidebarItem" href="/account">
+					<ChartIcon className="icon sm" />
+					Account &amp; usage
+				</a>
 				<button className="sidebarItem" onClick={onExportAll} type="button">
 					<DownloadIcon className="icon sm" />
 					Export all chats
@@ -188,15 +222,30 @@ export function Sidebar({
 					<SettingsIcon className="icon sm" />
 					Settings &amp; role
 				</button>
-				<button className="accountRow" onClick={onSignOut} type="button">
-					<span className="avatar">
-						<UserIcon className="icon xs" />
-					</span>
-					<span className="accountText">
-						<strong>{accountLabel}</strong>
-						<span>Sign out</span>
-					</span>
-				</button>
+				<div className="accountRow">
+					<a
+						className="accountRowMain"
+						href="/account"
+						title="See your plan and usage"
+					>
+						<span className="avatar">
+							<UserIcon className="icon xs" />
+						</span>
+						<span className="accountText">
+							<strong>{accountLabel}</strong>
+							<span>{planName} · usage</span>
+						</span>
+					</a>
+					<button
+						aria-label="Sign out of ChatGPT"
+						className="iconButton"
+						onClick={onSignOut}
+						title="Sign out of ChatGPT"
+						type="button"
+					>
+						<SignOutIcon className="icon sm" />
+					</button>
+				</div>
 			</div>
 		</nav>
 	)

@@ -55,7 +55,34 @@ Everything user-facing is in `artifacts/openai-agent`:
 - `app/lib/terminal.ts` — sandbox process runner, guard rails, package managers
 - `app/lib/workspace.ts` — the per-conversation path jail
 - `app/lib/auth.ts` — `requireUser()`, the guard every API route calls
+- `app/lib/plans.ts` — **what each plan may do. Source of truth for gating.**
+- `app/lib/entitlements.ts` — resolves the caller's plan from Clerk, server-side
+- `app/lib/usage.ts` — per-user turn counters and the daily history
+- `app/components/MaxPage.tsx` — the Cornia Max page and Clerk checkout
+- `app/components/AccountPage.tsx` + `UsageChart.tsx` — plan and usage
+- `app/components/CorniaCode.tsx` — repo picker and job feed
+- `app/lib/github.ts` — GitHub REST client (App JWT or token)
+- `app/lib/codeJobs.ts` / `codeRunner.ts` — durable jobs and the agent that runs them
 - `proxy.ts` — Next 16 proxy (formerly middleware); mounts Clerk
+
+## Plans
+
+Two plans, defined once in `app/lib/plans.ts`:
+
+| | Cornia Free | Cornia Max ($14/mo) |
+|---|---|---|
+| Models | `gpt-5.6-luna` only | every model on the account |
+| Messages | 20 per rolling 24h | 400 per rolling 5h |
+| Reasoning effort | model default | chosen per model |
+| Workspace, terminal, research, images, Cornia Code | — | included |
+| Uploads | 5 MB | 100 MB |
+
+**Gating is server-side and is not negotiable from the browser.** Every route
+calls `resolveEntitlements()`, which reads the Clerk session and nothing else —
+no request body, header or cookie takes part. The chat route refuses a model the
+plan does not include, and `createAgentTools` builds its tool set from the plan,
+so a locked tool is absent from the request the model sees rather than merely
+hidden in the UI. `useEntitlements` exists only to decide what to draw.
 
 ## Architecture decisions
 
@@ -80,11 +107,23 @@ Everything user-facing is in `artifacts/openai-agent`:
 - **The terminal transcript is shared.** `lib/terminalBus.ts` is a small
   in-memory store so the panel shows the agent's commands and the user's in one
   scrollback.
+- **Usage is metered on disk, per user, under a lock.** `lib/usage.ts` keeps a
+  file per Clerk user: raw event timestamps for the rolling window, plus 30 days
+  of daily tallies for the chart. Read and increment happen under the same
+  per-user lock, so simultaneous requests cannot both see the pre-increment
+  count and hand out a free turn. Swap the two file helpers for a table when
+  there is more than one server process.
+- **Cornia Code jobs are files, not memory.** A job writes every step to disk as
+  it happens and heartbeats while it runs. A job that stops heartbeating is
+  assumed dead, and the next poll hands it to a fresh runner, which reads its own
+  transcript and carries on — that is what "resumes if interrupted" rests on.
 
 ## Product
 
 Sign up with Clerk (Google, Apple, or an emailed six-digit code), then connect a
-ChatGPT account. Each conversation gets its own sandbox directory. The agent
+ChatGPT account. Cornia Free covers everyday chat on GPT-5.6 Luna; Cornia Max
+($14/month, sold through Clerk Billing) unlocks every model, the tools, and
+Cornia Code. Each conversation gets its own sandbox directory. The agent
 plans, writes and edits files, runs them, installs and removes packages, clones
 repositories, searches and reads the web, extracts code from documentation
 pages, and generates images into the workspace. A files panel and a terminal
@@ -104,6 +143,12 @@ panel both open onto that same sandbox.
 - Image generation is gated separately from chat by ChatGPT plan. A signed-in
   account with working chat can still get a 403 here; that is what the
   `OPENAI_API_KEY` fallback is for.
+- **`.env.local` is gitignored and holds real keys.** `.env.example` documents
+  every variable; nothing secret is committed.
+- Cornia Code needs GitHub credentials to do anything: either the App's **PEM
+  private key** (`GITHUB_APP_PRIVATE_KEY` — the `SHA256:…` string GitHub shows
+  beside it is a fingerprint and cannot sign a JWT) or a `GITHUB_TOKEN`. Without
+  either, `/code` renders and explains itself but lists no repositories.
 - Run `pnpm run typecheck` before pushing — `proxy.ts` is included in the agent
   app's tsconfig, so middleware mistakes are caught there.
 

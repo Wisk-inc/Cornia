@@ -4,7 +4,9 @@ import { useChat } from "@ai-sdk/react"
 import { openaiAuthHeaders } from "@openai-oauth/react"
 import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { EntitlementsState } from "../hooks/useEntitlements"
 import type { AgentModel } from "../lib/models"
+import type { PlanFeature } from "../lib/plans"
 import type { Attachment, Conversation, Settings } from "../lib/types"
 import { Composer } from "./Composer"
 import {
@@ -117,21 +119,66 @@ const messagesSignature = (messages: UIMessage[]): string =>
 // is always flushed when the turn ends.
 const SAVE_THROTTLE_MS = 400
 
+/**
+ * The allowance, shown only once it starts to matter. A counter that is always
+ * on screen reads as pressure; one that appears with five turns left reads as
+ * information.
+ */
+function QuotaNotice({
+	entitlements,
+	onUpgrade,
+}: {
+	entitlements: EntitlementsState
+	onUpgrade: (feature?: PlanFeature) => void
+}) {
+	const usage = entitlements.usage
+	if (!usage || usage.remaining > 5) {
+		return null
+	}
+
+	const fraction = usage.limit === 0 ? 0 : usage.used / usage.limit
+
+	return (
+		<div className={`quotaNotice ${usage.exhausted ? "spent" : ""}`}>
+			<div className="quotaBar" style={{ width: 120 }}>
+				<div
+					className={`quotaFill ${usage.remaining <= 2 ? "low" : ""}`}
+					style={{ width: `${Math.min(fraction, 1) * 100}%` }}
+				/>
+			</div>
+			<span>
+				{usage.exhausted
+					? `No messages left in this ${usage.windowHours}-hour window.`
+					: `${usage.remaining} of ${usage.limit} messages left.`}
+			</span>
+			{entitlements.planId === "free" ? (
+				<button onClick={() => onUpgrade()} type="button">
+					Get 20× more
+				</button>
+			) : null}
+		</div>
+	)
+}
+
 export function ChatView({
 	conversation,
 	model,
 	modelInfo,
 	settings,
+	entitlements,
 	onMessagesChange,
 	onTitle,
+	onUpgrade,
 	onWorkspaceChanged,
 }: {
 	conversation: Conversation
 	model?: string
 	modelInfo?: AgentModel
 	settings: Settings
+	entitlements: EntitlementsState
 	onMessagesChange: (messages: UIMessage[]) => void
 	onTitle: (title: string) => void
+	onUpgrade: (feature?: PlanFeature) => void
 	onWorkspaceChanged: () => void
 }) {
 	const [imageMode, setImageMode] = useState(false)
@@ -199,6 +246,17 @@ export function ChatView({
 	})
 
 	const busy = status === "submitted" || status === "streaming"
+
+	// The server is the authority on plans; when it refuses a turn the reason
+	// comes back in the error body, and that is what the user should see.
+	useEffect(() => {
+		if (!error) {
+			return
+		}
+		if (/not included in|used all .* messages/i.test(error.message)) {
+			void entitlements.refresh()
+		}
+	}, [error, entitlements])
 
 	// Everything below reads the newest messages through this ref, so effects and
 	// callbacks never have to list the array itself as a dependency.
@@ -379,10 +437,16 @@ export function ChatView({
 	const handleSend = useCallback(
 		(text: string, attachments: Attachment[]) => {
 			if (imageMode) {
+				if (!entitlements.can("imageGeneration")) {
+					setImageMode(false)
+					onUpgrade("imageGeneration")
+					return
+				}
 				void generateImage(text)
 				setImageMode(false)
 				return
 			}
+
 
 			const files: FileUIPart[] = attachments
 				.filter((attachment) => attachment.isImage && attachment.dataUrl)
@@ -405,7 +469,7 @@ export function ChatView({
 			stickToBottom.current = true
 			void sendMessage({ text: body, files })
 		},
-		[generateImage, imageMode, sendMessage],
+		[entitlements, generateImage, imageMode, onUpgrade, sendMessage],
 	)
 
 	const copyMessage = async (message: UIMessage) => {
@@ -609,12 +673,20 @@ export function ChatView({
 				</div>
 			)}
 
+			<QuotaNotice entitlements={entitlements} onUpgrade={onUpgrade} />
+
 			<Composer
 				busy={busy || generatingImage}
+				canAttach={entitlements.can("workspace")}
 				imageMode={imageMode}
 				onSend={handleSend}
 				onStop={() => void stop()}
-				onToggleImageMode={() => setImageMode((current) => !current)}
+				onToggleImageMode={() =>
+					entitlements.can("imageGeneration")
+						? setImageMode((current) => !current)
+						: onUpgrade("imageGeneration")
+				}
+				onUpgrade={onUpgrade}
 				sessionId={conversation.id}
 			/>
 		</>

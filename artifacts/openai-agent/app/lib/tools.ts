@@ -2,6 +2,7 @@ import { tool } from "@ai-sdk/provider-utils"
 import type { OpenAIOAuthProvider } from "@openai-oauth/ai-sdk"
 import { z } from "zod"
 import { generateWorkspaceImage, IMAGE_MODEL } from "./images"
+import { type Plan, planTools } from "./plans"
 import { deepResearch, extractCode, faviconUrl, siteName } from "./research"
 import { fetchPage, webSearch } from "./search"
 import {
@@ -24,6 +25,8 @@ export { IMAGE_MODEL }
 export type AgentToolContext = {
 	sessionId: string
 	provider: OpenAIOAuthProvider
+	/** Decides which tools exist at all for this turn. */
+	plan: Plan
 	signal?: AbortSignal
 }
 
@@ -38,11 +41,19 @@ const planStepSchema = z.object({
 const shellQuote = (value: string): string =>
 	`'${value.replace(/'/g, "'\\''")}'`
 
-export const createAgentTools = ({
+/**
+ * Every tool the agent can call, before the plan filter.
+ *
+ * `createAgentTools` is what the chat route actually uses: it drops the tools
+ * the caller's plan does not include, so a locked tool is not merely hidden in
+ * the UI — it is absent from the request the model sees. There is no client
+ * value to tamper with, because the model is never told the tool exists.
+ */
+const allTools = ({
 	sessionId,
 	provider,
 	signal,
-}: AgentToolContext) => ({
+}: Omit<AgentToolContext, "plan">) => ({
 	update_plan: tool({
 		description:
 			"Record or update the plan for a multi-step task. Call this before starting work and again whenever a step finishes. Keep exactly one step in_progress.",
@@ -491,4 +502,16 @@ export const createAgentTools = ({
 	}),
 })
 
-export type AgentTools = ReturnType<typeof createAgentTools>
+export type AgentTools = Partial<ReturnType<typeof allTools>>
+
+export const createAgentTools = ({
+	plan,
+	...context
+}: AgentToolContext): AgentTools => {
+	const permitted = new Set(planTools(plan))
+	const everything = allTools(context)
+
+	return Object.fromEntries(
+		Object.entries(everything).filter(([name]) => permitted.has(name)),
+	) as AgentTools
+}

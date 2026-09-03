@@ -396,6 +396,22 @@ export const ArrowRightIcon = (props: IconProps) => (
 	</Svg>
 )
 
+export const ChartIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M4 20V4" />
+		<path d="M4 20h16" />
+		<path d="M8 20v-6M12.5 20V8M17 20v-9" />
+	</Svg>
+)
+
+export const SignOutIcon = (props: IconProps) => (
+	<Svg {...props}>
+		<path d="M14.5 4.5H6a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 6 19.5h8.5" />
+		<path d="M16 8.5 19.5 12 16 15.5" />
+		<path d="M19.5 12h-9" />
+	</Svg>
+)
+
 /** The project's own mark, used as the app logo. */
 export const BrandIcon = ({ className = "icon" }: IconProps) => (
 	<svg

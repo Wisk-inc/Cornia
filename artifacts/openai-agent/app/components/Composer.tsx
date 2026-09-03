@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from "react"
+import type { PlanFeature } from "../lib/plans"
 import type { Attachment } from "../lib/types"
 import {
 	CloseIcon,
@@ -40,7 +41,10 @@ export type ComposerProps = {
 	sessionId: string
 	busy: boolean
 	imageMode: boolean
+	/** Attachments write to the workspace, so they follow the workspace plan. */
+	canAttach: boolean
 	onToggleImageMode: () => void
+	onUpgrade: (feature?: PlanFeature) => void
 	onSend: (text: string, attachments: Attachment[]) => void
 	onStop: () => void
 	placeholder?: string
@@ -50,7 +54,9 @@ export function Composer({
 	sessionId,
 	busy,
 	imageMode,
+	canAttach,
 	onToggleImageMode,
+	onUpgrade,
 	onSend,
 	onStop,
 	placeholder,
@@ -75,6 +81,12 @@ export function Composer({
 
 	const uploadFiles = useCallback(
 		async (files: File[]) => {
+			// Covers paste and drag-and-drop as well as the button — all three end
+			// up here, and the upload route refuses them anyway without the plan.
+			if (!canAttach) {
+				onUpgrade("workspace")
+				return
+			}
 			for (const file of files) {
 				const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 				const isImage = file.type.startsWith("image/")
@@ -146,7 +158,7 @@ export function Composer({
 				}
 			}
 		},
-		[sessionId],
+		[canAttach, onUpgrade, sessionId],
 	)
 
 	const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
@@ -295,9 +307,17 @@ export function Composer({
 					<div className="composerRow">
 						<button
 							aria-label="Attach files"
-							className="composerButton"
-							onClick={() => fileInputRef.current?.click()}
-							title="Attach files or images"
+							className={`composerButton ${canAttach ? "" : "locked"}`}
+							onClick={() =>
+								canAttach
+									? fileInputRef.current?.click()
+									: onUpgrade("workspace")
+							}
+							title={
+								canAttach
+									? "Attach files or images"
+									: "Attachments are a Cornia Max feature"
+							}
 							type="button"
 						>
 							<PaperclipIcon className="icon sm" />

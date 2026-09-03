@@ -1,4 +1,5 @@
 import { requireUser } from "../../../lib/auth"
+import { requireFeature, resolveEntitlements } from "../../../lib/entitlements"
 import { errorMessage } from "../../../lib/openai"
 import { listWorkspace, readWorkspaceBinary } from "../../../lib/workspace"
 import { createZip, type ZipEntry } from "../../../lib/zip"
@@ -12,6 +13,11 @@ export async function GET(request: Request) {
 	const denied = await requireUser()
 	if (denied) {
 		return denied
+	}
+
+	const locked = requireFeature(await resolveEntitlements(), "workspace")
+	if (locked) {
+		return locked
 	}
 
 	const url = new URL(request.url)

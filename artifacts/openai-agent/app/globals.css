@@ -2599,3 +2599,1221 @@ a {
 		padding: 30px 0 52px;
 	}
 }
+
+/* ---------------------------------------------------------------------------
+   Plan locks and the upgrade prompt
+--------------------------------------------------------------------------- */
+
+/* A locked row stays readable — the point is that you can see what you would
+   get, not that the option disappears. */
+.menuItem.locked {
+	opacity: 0.45;
+	cursor: pointer;
+}
+
+.menuItem.locked:hover {
+	opacity: 0.7;
+	background: var(--bg-hover);
+}
+
+.badge.locked {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	background: color-mix(in srgb, var(--info) 18%, transparent);
+	color: var(--info);
+	border-radius: 5px;
+	padding: 1px 5px;
+	font-size: 10.5px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.menuUpsell {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	width: 100%;
+	margin: 6px;
+	padding: 11px 12px;
+	text-align: left;
+	border: 1px solid color-mix(in srgb, var(--info) 34%, transparent);
+	border-radius: 10px;
+	background: color-mix(in srgb, var(--info) 10%, transparent);
+	color: var(--text);
+	font-size: 12.5px;
+	line-height: 1.5;
+	cursor: pointer;
+}
+
+.menuUpsell:hover {
+	background: color-mix(in srgb, var(--info) 16%, transparent);
+}
+
+.menuUpsell svg {
+	color: var(--info);
+	flex: none;
+	margin-top: 1px;
+}
+
+.upgradeDialog {
+	width: min(480px, 100%);
+	padding: 28px;
+	text-align: center;
+	align-items: center;
+}
+
+.upgradeClose {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+}
+
+.upgradeBadge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--info) 16%, transparent);
+	color: var(--info);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.upgradeDialog h2 {
+	margin: 16px 0 0;
+	font-size: 22px;
+	letter-spacing: -0.02em;
+}
+
+.upgradeLede {
+	margin: 10px 0 0;
+	font-size: 13.5px;
+	line-height: 1.6;
+	color: var(--text-secondary);
+	max-width: 34em;
+}
+
+.upgradeList {
+	list-style: none;
+	margin: 20px 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	width: 100%;
+	text-align: left;
+}
+
+.upgradeList li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13.5px;
+	color: var(--text-secondary);
+}
+
+.upgradeList svg {
+	color: var(--info);
+	flex: none;
+}
+
+.upgradeCta {
+	width: 100%;
+	margin-top: 22px;
+	text-decoration: none;
+}
+
+.upgradeDismiss {
+	margin-top: 12px;
+	background: none;
+	border: none;
+	color: var(--text-tertiary);
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.upgradeDismiss:hover {
+	color: var(--text);
+}
+
+/* A quota meter, shown in the composer area and the account page. */
+.quotaBar {
+	height: 6px;
+	border-radius: 999px;
+	background: var(--bg-subtle);
+	overflow: hidden;
+}
+
+.quotaFill {
+	height: 100%;
+	border-radius: 999px;
+	background: var(--info);
+	transition: width 0.3s ease;
+}
+
+.quotaFill.low {
+	background: var(--danger);
+}
+
+/* Locked affordances stay in place and dim, rather than disappearing — the
+   layout should not shift when a subscription starts or lapses. */
+.iconButton.locked,
+.composerButton.locked {
+	opacity: 0.4;
+}
+
+.iconButton.locked:hover,
+.composerButton.locked:hover {
+	opacity: 0.65;
+}
+
+.upsellPill {
+	border-color: color-mix(in srgb, var(--info) 40%, transparent);
+	color: var(--info);
+}
+
+.upsellPill:hover {
+	background: color-mix(in srgb, var(--info) 12%, transparent);
+}
+
+.lockedField .segmented button {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.fieldLock {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 8px;
+	padding: 2px 7px;
+	border: none;
+	border-radius: 5px;
+	background: color-mix(in srgb, var(--info) 16%, transparent);
+	color: var(--info);
+	font-size: 10.5px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.quotaNotice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: min(760px, calc(100% - 32px));
+	margin: 0 auto 6px;
+	padding: 8px 12px;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	background: var(--bg-subtle);
+	font-size: 12.5px;
+	color: var(--text-secondary);
+}
+
+.quotaNotice.spent {
+	border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+	color: var(--text);
+}
+
+.quotaNotice button {
+	margin-left: auto;
+	background: none;
+	border: none;
+	padding: 0;
+	color: var(--info);
+	font-size: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Usage chart — one series, thin marks, recessive chrome
+--------------------------------------------------------------------------- */
+
+.visuallyHidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.chartCard {
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: var(--bg-elevated);
+	padding: 20px 22px 18px;
+}
+
+.chartHead {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 22px;
+}
+
+.chartHead h3 {
+	margin: 0;
+	font-size: 15px;
+	letter-spacing: -0.01em;
+}
+
+.chartSub {
+	margin: 4px 0 0;
+	font-size: 12.5px;
+	color: var(--text-tertiary);
+}
+
+.chartToggle {
+	flex: none;
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	color: var(--text-secondary);
+	font-size: 12.5px;
+	padding: 5px 12px;
+	cursor: pointer;
+}
+
+.chartToggle:hover {
+	border-color: var(--border-strong);
+	color: var(--text);
+}
+
+/* The container includes the x-axis band, so the labels are never clipped into
+   a nested scrollbar. */
+.chartBody {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: 168px auto;
+	column-gap: 10px;
+}
+
+.chartYAxis {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: flex-end;
+	font-size: 11px;
+	color: var(--text-tertiary);
+	font-variant-numeric: tabular-nums;
+	/* Half a line, so each tick sits on its gridline rather than above it. */
+	transform: translateY(-0.5em);
+}
+
+.chartPlot {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	/* The 2px surface gap that separates neighbouring columns. */
+	gap: 2px;
+	border-bottom: 1px solid var(--border);
+}
+
+.chartGrid {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: var(--border);
+	pointer-events: none;
+}
+
+.chartColumn {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	/* Full-height hit target, so a one-message day is still easy to hover. */
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: default;
+}
+
+.chartBar {
+	width: 100%;
+	max-width: 24px;
+	/* Rounded at the data end, square on the baseline. */
+	border-radius: 4px 4px 0 0;
+	background: var(--info);
+	transition: opacity 0.12s ease;
+}
+
+.chartBar.empty {
+	background: var(--border-strong);
+	border-radius: 0;
+}
+
+.chartColumn.hovered .chartBar {
+	opacity: 0.78;
+}
+
+.chartPeakLabel {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--text-secondary);
+	font-variant-numeric: tabular-nums;
+	margin-bottom: 4px;
+}
+
+.chartTip {
+	position: absolute;
+	bottom: calc(100% + 6px);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 3;
+	white-space: nowrap;
+	padding: 7px 10px;
+	border-radius: 8px;
+	background: var(--bg);
+	border: 1px solid var(--border-strong);
+	box-shadow: var(--shadow-md);
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--text-secondary);
+	pointer-events: none;
+}
+
+.chartTip strong {
+	color: var(--text);
+}
+
+.chartXAxis {
+	grid-column: 2;
+	display: flex;
+	gap: 2px;
+	margin-top: 8px;
+}
+
+.chartXAxis span {
+	flex: 1;
+	min-width: 0;
+	text-align: center;
+	font-size: 10.5px;
+	color: var(--text-tertiary);
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.chartTableWrap {
+	max-height: 260px;
+	overflow-y: auto;
+}
+
+.chartTable {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.chartTable th,
+.chartTable td {
+	text-align: left;
+	padding: 7px 8px;
+	border-bottom: 1px solid var(--border);
+	font-weight: 400;
+}
+
+.chartTable thead th {
+	color: var(--text-tertiary);
+	font-size: 11.5px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.chartTable td {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	color: var(--text);
+}
+
+/* ---------------------------------------------------------------------------
+   Account page
+--------------------------------------------------------------------------- */
+
+.accountPage {
+	min-height: 100dvh;
+	width: 100%;
+	overflow-y: auto;
+	background: var(--bg);
+	color: var(--text);
+	padding: 0 24px 80px;
+}
+
+.accountNav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	max-width: 880px;
+	margin: 0 auto;
+	padding: 20px 0;
+}
+
+.accountNavRight {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.accountHeader {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	max-width: 880px;
+	margin: 0 auto 28px;
+	padding-top: 24px;
+}
+
+.accountHeader h1 {
+	margin: 0;
+	font-size: 30px;
+	letter-spacing: -0.03em;
+}
+
+.accountEmail {
+	margin: 6px 0 0;
+	font-size: 14px;
+	color: var(--text-secondary);
+}
+
+.planChip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+	padding: 6px 14px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: var(--bg-subtle);
+	font-size: 13px;
+	font-weight: 550;
+}
+
+.planChip.max {
+	border-color: color-mix(in srgb, var(--info) 40%, transparent);
+	background: color-mix(in srgb, var(--info) 12%, transparent);
+	color: var(--info);
+}
+
+.accountLoading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	max-width: 880px;
+	margin: 0 auto;
+	padding: 60px 0;
+	color: var(--text-secondary);
+	font-size: 14px;
+}
+
+.statRow {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 14px;
+	max-width: 880px;
+	margin: 0 auto 16px;
+}
+
+.statTile {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 16px 18px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--bg-subtle);
+}
+
+.statTile.warn {
+	border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.statLabel {
+	font-size: 11.5px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-tertiary);
+}
+
+/* Proportional figures: equal-width digits read loose at this size. */
+.statValue {
+	font-size: 28px;
+	font-weight: 620;
+	letter-spacing: -0.025em;
+	line-height: 1.1;
+}
+
+.statTile.warn .statValue {
+	color: var(--danger);
+}
+
+.statHint {
+	font-size: 12px;
+	color: var(--text-tertiary);
+}
+
+.accountMeter {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	max-width: 880px;
+	margin: 0 auto 26px;
+	font-size: 12.5px;
+	color: var(--text-secondary);
+}
+
+.accountMeter .quotaBar {
+	flex: 1;
+	min-width: 0;
+}
+
+.accountPage .chartCard {
+	max-width: 880px;
+	margin: 0 auto;
+}
+
+.accountPlanCard {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 28px;
+	flex-wrap: wrap;
+	max-width: 880px;
+	margin: 24px auto 0;
+	padding: 24px;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: var(--bg-subtle);
+}
+
+.accountPlanBody {
+	flex: 1;
+	min-width: 260px;
+}
+
+.accountPlanCard h2 {
+	margin: 0;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+}
+
+.accountPlanCard p {
+	margin: 8px 0 0;
+	font-size: 13.5px;
+	line-height: 1.6;
+	color: var(--text-secondary);
+	max-width: 44em;
+}
+
+.accountFeatureList {
+	list-style: none;
+	margin: 16px 0 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	gap: 9px;
+}
+
+.accountFeatureList li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+.accountFeatureList li.on svg {
+	color: var(--success);
+}
+
+.accountFeatureList li.off {
+	opacity: 0.6;
+}
+
+.accountFeatureList li.off svg {
+	color: var(--text-tertiary);
+}
+
+.accountUpgrade {
+	flex: none;
+	width: auto;
+	padding: 0 22px;
+	margin: 0;
+	text-decoration: none;
+}
+
+/* The account row splits into a link and a sign-out button. */
+.accountRow {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.accountRowMain {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+	padding: 8px;
+	border-radius: 10px;
+	color: inherit;
+	text-decoration: none;
+}
+
+.accountRowMain:hover {
+	background: var(--bg-hover);
+}
+
+.sidebarItem.locked {
+	opacity: 0.6;
+}
+
+.sidebarBadge {
+	margin-left: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Cornia Max page
+--------------------------------------------------------------------------- */
+
+.maxHero {
+	position: relative;
+	max-width: 760px;
+	margin: 0 auto;
+	padding: 56px 0 64px;
+	text-align: center;
+}
+
+.maxHero h1 {
+	margin: 0;
+	font-size: clamp(34px, 5vw, 56px);
+	line-height: 1.06;
+	letter-spacing: -0.035em;
+	font-weight: 680;
+}
+
+.maxLede {
+	margin: 22px auto 0;
+	max-width: 34em;
+}
+
+.maxCta {
+	width: auto;
+	display: inline-flex;
+	margin-top: 30px;
+	padding: 0 26px;
+	height: 50px;
+	font-size: 15.5px;
+	text-decoration: none;
+}
+
+.maxFinePrint {
+	margin: 16px 0 0;
+	font-size: 12.5px;
+	color: var(--text-tertiary);
+}
+
+.maxDone {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 28px;
+	padding: 12px 20px;
+	border-radius: 12px;
+	border: 1px solid color-mix(in srgb, var(--success) 40%, transparent);
+	background: color-mix(in srgb, var(--success) 10%, transparent);
+	font-size: 14px;
+}
+
+.maxDone svg {
+	color: var(--success);
+}
+
+.maxDone a {
+	color: var(--info);
+	font-weight: 600;
+}
+
+.maxFeatures {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+	gap: 18px;
+	max-width: 1120px;
+	margin: 0 auto;
+}
+
+.maxCompare {
+	max-width: 720px;
+	margin: 72px auto 0;
+}
+
+.maxCompare h2,
+.maxPricingTable h2 {
+	margin: 0 0 20px;
+	font-size: 22px;
+	letter-spacing: -0.02em;
+	text-align: center;
+}
+
+.maxTableWrap {
+	overflow-x: auto;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+}
+
+.maxTable {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13.5px;
+}
+
+.maxTable th,
+.maxTable td {
+	padding: 12px 16px;
+	text-align: left;
+	border-bottom: 1px solid var(--border);
+	white-space: nowrap;
+}
+
+.maxTable tbody tr:last-child th,
+.maxTable tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.maxTable thead th {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-tertiary);
+	font-weight: 600;
+}
+
+.maxTable tbody th {
+	font-weight: 500;
+	color: var(--text-secondary);
+}
+
+.maxTable td {
+	color: var(--text-secondary);
+}
+
+/* The column being sold gets the emphasis; everything else stays quiet. */
+.maxTable .maxColumn {
+	background: color-mix(in srgb, var(--info) 8%, transparent);
+	color: var(--text);
+	font-weight: 550;
+}
+
+.maxTable thead .maxColumn {
+	color: var(--info);
+}
+
+.maxPricingTable {
+	max-width: 900px;
+	margin: 72px auto 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Cornia Code
+--------------------------------------------------------------------------- */
+
+.codePage {
+	min-height: 100dvh;
+	width: 100%;
+	overflow-y: auto;
+	background: var(--bg);
+	color: var(--text);
+	padding: 0 24px 80px;
+}
+
+.codeHeader {
+	max-width: 880px;
+	margin: 0 auto 24px;
+	padding-top: 24px;
+}
+
+.codeHeader h1 {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	font-size: 30px;
+	letter-spacing: -0.03em;
+}
+
+.codeHeader p {
+	margin: 8px 0 0;
+	font-size: 14px;
+	color: var(--text-secondary);
+}
+
+.codeLocked {
+	max-width: 560px;
+	margin: 80px auto 0;
+	text-align: center;
+}
+
+.codeLocked h1 {
+	margin: 18px 0 0;
+	font-size: 32px;
+	letter-spacing: -0.03em;
+}
+
+.codeLocked p {
+	margin: 12px 0 0;
+	font-size: 14.5px;
+	line-height: 1.65;
+	color: var(--text-secondary);
+}
+
+.codeSetup {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	max-width: 880px;
+	margin: 0 auto 20px;
+	padding: 16px 18px;
+	border: 1px solid color-mix(in srgb, var(--info) 34%, transparent);
+	border-radius: 12px;
+	background: color-mix(in srgb, var(--info) 8%, transparent);
+	flex-wrap: wrap;
+}
+
+.codeSetup > div {
+	flex: 1;
+	min-width: 220px;
+}
+
+.codeSetup strong {
+	font-size: 14px;
+}
+
+.codeSetup p {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+.codeSetup .authSubmit {
+	width: auto;
+	padding: 0 18px;
+	height: 40px;
+	text-decoration: none;
+	flex: none;
+}
+
+.codeComposer {
+	max-width: 880px;
+	margin: 0 auto;
+	padding: 20px;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: var(--bg-subtle);
+}
+
+.codeRow {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 14px;
+}
+
+.codeField {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.codeField span {
+	font-size: 11.5px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-tertiary);
+}
+
+.codeField select {
+	height: 40px;
+	padding: 0 10px;
+	border: 1px solid var(--border-strong);
+	border-radius: 9px;
+	background: var(--bg);
+	color: var(--text);
+	font-size: 13.5px;
+}
+
+.codeTask {
+	width: 100%;
+	margin-top: 14px;
+	padding: 12px 14px;
+	border: 1px solid var(--border-strong);
+	border-radius: 11px;
+	background: var(--bg);
+	color: var(--text);
+	font-size: 14.5px;
+	line-height: 1.55;
+	resize: vertical;
+	font-family: inherit;
+}
+
+.codeTask:focus {
+	outline: none;
+	border-color: var(--focus);
+}
+
+.codeActions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-top: 14px;
+	flex-wrap: wrap;
+}
+
+.codeHint {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12.5px;
+	color: var(--text-tertiary);
+	flex: 1;
+	min-width: 200px;
+}
+
+.codeStart {
+	width: auto;
+	padding: 0 22px;
+	flex: none;
+}
+
+.codeJobs {
+	max-width: 880px;
+	margin: 34px auto 0;
+}
+
+.codeJobs h2 {
+	margin: 0 0 14px;
+	font-size: 17px;
+	letter-spacing: -0.02em;
+}
+
+.jobCard {
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--bg-elevated);
+	margin-bottom: 12px;
+	overflow: hidden;
+}
+
+.jobCard.running {
+	border-color: color-mix(in srgb, var(--info) 40%, transparent);
+}
+
+.jobCard.failed {
+	border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.jobHead {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 14px 16px;
+	background: none;
+	border: none;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.jobHead:hover {
+	background: var(--bg-hover);
+}
+
+.jobStatusIcon {
+	display: inline-flex;
+	color: var(--text-secondary);
+	flex: none;
+}
+
+.jobCard.completed .jobStatusIcon {
+	color: var(--success);
+}
+
+.jobCard.failed .jobStatusIcon {
+	color: var(--danger);
+}
+
+.jobHeadText {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	flex: 1;
+	min-width: 0;
+}
+
+.jobHeadText strong {
+	font-size: 14px;
+	font-weight: 550;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.jobMeta {
+	font-size: 12px;
+	color: var(--text-tertiary);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.jobBadge {
+	flex: none;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 9px;
+	border-radius: 999px;
+	background: var(--bg-subtle);
+	color: var(--text-secondary);
+}
+
+.jobBadge.running,
+.jobBadge.queued {
+	background: color-mix(in srgb, var(--info) 16%, transparent);
+	color: var(--info);
+}
+
+.jobBadge.completed {
+	background: color-mix(in srgb, var(--success) 16%, transparent);
+	color: var(--success);
+}
+
+.jobBadge.failed {
+	background: color-mix(in srgb, var(--danger) 16%, transparent);
+	color: var(--danger);
+}
+
+.jobBody {
+	padding: 4px 16px 16px;
+	border-top: 1px solid var(--border);
+}
+
+.jobSteps {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.jobStep {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 7px 0;
+	border-bottom: 1px solid var(--border);
+	font-size: 13px;
+}
+
+.jobStep:last-child {
+	border-bottom: none;
+}
+
+.jobStepIcon {
+	display: inline-flex;
+	color: var(--text-tertiary);
+	margin-top: 2px;
+	flex: none;
+}
+
+.jobStep.error .jobStepIcon {
+	color: var(--danger);
+}
+
+.jobStepBody {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.jobStepBody strong {
+	font-weight: 550;
+	font-size: 12.5px;
+}
+
+.jobStepBody span {
+	color: var(--text-secondary);
+	font-size: 12.5px;
+	word-break: break-word;
+}
+
+.jobStep time {
+	font-size: 11px;
+	color: var(--text-tertiary);
+	font-variant-numeric: tabular-nums;
+	flex: none;
+}
+
+.jobSummary {
+	display: flex;
+	gap: 10px;
+	margin-top: 14px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: var(--bg-subtle);
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.jobSummary svg {
+	color: var(--success);
+	flex: none;
+	margin-top: 2px;
+}
+
+.jobSummary p {
+	margin: 0;
+	white-space: pre-wrap;
+}
+
+.jobCancel {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 14px;
+	padding: 6px 12px;
+	border: 1px solid var(--border-strong);
+	border-radius: 8px;
+	background: none;
+	color: var(--text-secondary);
+	font-size: 12.5px;
+	cursor: pointer;
+}
+
+.jobCancel:hover {
+	color: var(--danger);
+	border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+@media (max-width: 720px) {
+	.codeRow {
+		grid-template-columns: 1fr;
+	}
+}

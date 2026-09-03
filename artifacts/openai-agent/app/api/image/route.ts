@@ -1,5 +1,6 @@
-import { requireUser } from "../../lib/auth"
 import { createOpenAIOAuth } from "@openai-oauth/ai-sdk"
+import { requireUser } from "../../lib/auth"
+import { requireFeature, resolveEntitlements } from "../../lib/entitlements"
 import {
 	generateWorkspaceImage,
 	type ImageSize,
@@ -23,6 +24,11 @@ export async function POST(request: Request) {
 	const denied = await requireUser()
 	if (denied) {
 		return denied
+	}
+
+	const locked = requireFeature(await resolveEntitlements(), "imageGeneration")
+	if (locked) {
+		return locked
 	}
 
 	const body = (await request.json().catch(() => ({}))) as ImageRequestBody

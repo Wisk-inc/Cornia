@@ -58,3 +58,7 @@ Thumbs.db
 
 # Per-conversation agent sandboxes, created at runtime.
 .agent-workspace/
+
+# Usage counters and background jobs, written at runtime.
+.cornia-usage/
+.cornia-jobs/

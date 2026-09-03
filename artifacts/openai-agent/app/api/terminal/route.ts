@@ -1,4 +1,5 @@
 import { requireUser } from "../../lib/auth"
+import { requireFeature, resolveEntitlements } from "../../lib/entitlements"
 import { errorMessage } from "../../lib/openai"
 import { checkCommandAllowed, runCommand } from "../../lib/terminal"
 
@@ -21,6 +22,11 @@ export async function POST(request: Request) {
 	const denied = await requireUser()
 	if (denied) {
 		return denied
+	}
+
+	const locked = requireFeature(await resolveEntitlements(), "terminal")
+	if (locked) {
+		return locked
 	}
 
 	const body = (await request.json().catch(() => ({}))) as TerminalRequestBody
