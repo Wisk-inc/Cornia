@@ -1,3 +1,4 @@
+import { requireUser } from "../../../lib/auth"
 import { errorMessage } from "../../../lib/openai"
 import { listWorkspace, readWorkspaceBinary } from "../../../lib/workspace"
 import { createZip, type ZipEntry } from "../../../lib/zip"
@@ -8,6 +9,11 @@ const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
 /** Downloads everything the agent built in a conversation as a single zip. */
 export async function GET(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	const url = new URL(request.url)
 	const sessionId = url.searchParams.get("sessionId")?.trim()
 	if (!sessionId) {

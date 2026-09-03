@@ -1,5 +1,7 @@
+import { requireUser } from "../../lib/auth"
 import { createOpenAIOAuth } from "@openai-oauth/ai-sdk"
 import { generateText } from "ai"
+import { STATELESS_PROVIDER_OPTIONS } from "../../lib/models"
 import { errorMessage, providerCredentials } from "../../lib/openai"
 import { TITLE_PROMPT } from "../../lib/prompt"
 
@@ -12,6 +14,11 @@ type TitleRequestBody = {
 }
 
 export async function POST(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	const body = (await request.json().catch(() => ({}))) as TitleRequestBody
 	const prompt = body.prompt?.trim()
 	if (!prompt || !body.model) {
@@ -30,6 +37,8 @@ export async function POST(request: Request) {
 				.filter(Boolean)
 				.join("\n\n---\n\n")
 				.slice(0, 2000),
+			// Codex never persists items, so never let the SDK reference one.
+			providerOptions: STATELESS_PROVIDER_OPTIONS,
 		})
 
 		const title = text

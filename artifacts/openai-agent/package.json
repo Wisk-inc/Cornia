@@ -13,6 +13,7 @@
   "dependencies": {
     "@ai-sdk/provider-utils": "4.0.19",
     "@ai-sdk/react": "3.0.118",
+    "@clerk/nextjs": "^7.8.4",
     "@openai-oauth/ai-sdk": "2.0.0",
     "@openai-oauth/core": "2.0.0",
     "@openai-oauth/react": "2.0.0",

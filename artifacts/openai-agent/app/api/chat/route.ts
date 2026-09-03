@@ -1,3 +1,4 @@
+import { requireUser } from "../../lib/auth"
 import { createOpenAIOAuth } from "@openai-oauth/ai-sdk"
 import {
 	convertToModelMessages,
@@ -28,19 +29,61 @@ const STEP_LIMIT = 32
 
 /**
  * Codex runs with `store: false`, so nothing the model produced is kept
- * server-side. Replaying a reasoning item by its id therefore fails with
- * "Item with id 'rs_…' not found". Reasoning is still streamed to the browser
- * for display; it just never goes back upstream.
+ * server-side and no earlier item can be referenced by id. Two things have to
+ * go before history is replayed:
+ *
+ * 1. Reasoning parts, which can only ever be replayed by reference.
+ * 2. The `itemId` the provider stamps onto every assistant text and tool call.
+ *    With an id present the SDK sends `{ type: "item_reference", id: "msg_…" }`
+ *    (or an input item carrying that id), and the upstream answers
+ *    "Item with id 'msg_…' not found. Items are not persisted when `store` is
+ *    set to false." Stripping the id makes the SDK inline the turn instead.
+ *
+ * `providerOptions.openai.store = false` (see `providerOptionsFor`) covers the
+ * same ground from the other direction; both are kept because the SDK reads
+ * the id from two different places depending on the part type.
  */
-const withoutReasoning = (messages: ModelMessage[]): ModelMessage[] =>
+const STATE_KEYS = ["itemId", "reasoningEncryptedContent"] as const
+
+const stripItemIds = (
+	options: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined => {
+	const openai = options?.openai
+	if (!options || typeof openai !== "object" || openai === null) {
+		return options
+	}
+	const cleaned: Record<string, unknown> = { ...(openai as object) }
+	let changed = false
+	for (const key of STATE_KEYS) {
+		if (key in cleaned) {
+			delete cleaned[key]
+			changed = true
+		}
+	}
+	return changed ? { ...options, openai: cleaned } : options
+}
+
+export const sanitizeForStatelessReplay = (
+	messages: ModelMessage[],
+): ModelMessage[] =>
 	messages.map((message) => {
 		if (message.role !== "assistant" || !Array.isArray(message.content)) {
 			return message
 		}
-		const content = message.content.filter((part) => part.type !== "reasoning")
-		return content.length === message.content.length
-			? message
-			: ({ ...message, content } as ModelMessage)
+		const content = message.content
+			.filter((part) => part.type !== "reasoning")
+			.map((part) => {
+				const providerOptions = stripItemIds(
+					(part as { providerOptions?: Record<string, unknown> })
+						.providerOptions,
+				)
+				return providerOptions ===
+					(part as { providerOptions?: Record<string, unknown> })
+						.providerOptions
+					? part
+					: { ...part, providerOptions }
+			})
+		return { ...message, content } as ModelMessage
 	})
 
 type ChatRequestBody = {
@@ -54,6 +97,11 @@ type ChatRequestBody = {
 }
 
 export async function POST(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	let body: ChatRequestBody
 	try {
 		body = (await request.json()) as ChatRequestBody
@@ -112,16 +160,20 @@ export async function POST(request: Request) {
 	const result = streamText({
 		model: openai(modelId),
 		system,
-		messages: withoutReasoning(await convertToModelMessages(body.messages)),
+		messages: sanitizeForStatelessReplay(
+			await convertToModelMessages(body.messages),
+		),
 		tools: createAgentTools({
 			sessionId,
 			provider: openai,
 			signal: request.signal,
 		}),
 		stopWhen: stepCountIs(STEP_LIMIT),
-		// Later steps in the same turn carry the earlier steps' reasoning, which
-		// hits the same stateless-replay error, so strip it there too.
-		prepareStep: ({ messages }) => ({ messages: withoutReasoning(messages) }),
+		// Later steps in the same turn carry the earlier steps' reasoning and item
+		// ids, which hit the same stateless-replay error, so strip them there too.
+		prepareStep: ({ messages }) => ({
+			messages: sanitizeForStatelessReplay(messages),
+		}),
 		abortSignal: request.signal,
 		providerOptions,
 		experimental_transform: smoothStream({ delayInMs: 12, chunking: "word" }),

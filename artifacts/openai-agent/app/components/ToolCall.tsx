@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { pushTerminalEntry } from "../lib/terminalBus"
 import type { PlanStep } from "../lib/types"
 import {
+	BookIcon,
 	ChevronDownIcon,
 	ChevronRightIcon,
 	CircleCheckIcon,
 	CircleDotIcon,
 	CircleIcon,
+	CodeIcon,
 	DownloadIcon,
 	FileEditIcon,
 	FileIcon,
@@ -16,11 +19,14 @@ import {
 	GlobeIcon,
 	ImageIcon,
 	ListIcon,
+	PackageIcon,
+	PlayIcon,
 	SpinnerIcon,
 	TerminalIcon,
 	TrashIcon,
 	WarningIcon,
 } from "./icons"
+import { ResearchCard, type ResearchSourceView } from "./ResearchCard"
 
 export type ToolPart = {
 	type: string
@@ -59,6 +65,11 @@ const TOOL_ICONS: Record<
 	web_search: GlobeIcon,
 	fetch_url: GlobeIcon,
 	generate_image: ImageIcon,
+	deep_research: BookIcon,
+	extract_code: CodeIcon,
+	install_package: PackageIcon,
+	uninstall_package: PackageIcon,
+	run_file: PlayIcon,
 }
 
 const TOOL_LABELS: Record<string, { running: string; done: string }> = {
@@ -73,7 +84,21 @@ const TOOL_LABELS: Record<string, { running: string; done: string }> = {
 	web_search: { running: "Searching the web", done: "Searched the web" },
 	fetch_url: { running: "Reading page", done: "Read page" },
 	generate_image: { running: "Generating image", done: "Generated image" },
+	deep_research: { running: "Researching", done: "Researched" },
+	extract_code: { running: "Extracting code", done: "Extracted code" },
+	install_package: { running: "Installing", done: "Installed" },
+	uninstall_package: { running: "Removing", done: "Removed" },
+	run_file: { running: "Running", done: "Ran" },
 }
+
+/** Tools whose work belongs in the terminal panel's scrollback. */
+const COMMAND_TOOLS = new Set([
+	"run_command",
+	"run_file",
+	"clone_repo",
+	"install_package",
+	"uninstall_package",
+])
 
 const toolSubject = (name: string, input: unknown): string | undefined => {
 	if (!isRecord(input)) {
@@ -83,13 +108,20 @@ const toolSubject = (name: string, input: unknown): string | undefined => {
 		case "run_command":
 			return asString(input.command)
 		case "clone_repo":
+		case "fetch_url":
+		case "extract_code":
 			return asString(input.url)
 		case "web_search":
 			return asString(input.query)
-		case "fetch_url":
-			return asString(input.url)
+		case "deep_research":
+			return asString(input.topic)
 		case "generate_image":
 			return asString(input.prompt)
+		case "install_package":
+		case "uninstall_package":
+			return Array.isArray(input.packages)
+				? input.packages.filter((item) => typeof item === "string").join(" ")
+				: undefined
 		default:
 			return asString(input.path)
 	}
@@ -140,6 +172,34 @@ const toolMeta = (name: string, output: unknown): string | undefined => {
 		case "web_search": {
 			const results = Array.isArray(output.results) ? output.results.length : 0
 			return `${results} results`
+		}
+		case "deep_research": {
+			const read = asNumber(output.read)
+			const total = Array.isArray(output.sources) ? output.sources.length : 0
+			return read === undefined ? undefined : `read ${read} of ${total} sources`
+		}
+		case "extract_code": {
+			const count = asNumber(output.count)
+			return count === undefined
+				? undefined
+				: `${count} block${count === 1 ? "" : "s"}`
+		}
+		case "run_file":
+		case "install_package":
+		case "uninstall_package": {
+			const code = asNumber(output.exitCode)
+			const duration = asNumber(output.durationMs)
+			const parts = [
+				output.timedOut === true
+					? "timed out"
+					: code === 0
+						? "exit 0"
+						: `exit ${code ?? "?"}`,
+			]
+			if (duration !== undefined) {
+				parts.push(`${(duration / 1000).toFixed(1)}s`)
+			}
+			return parts.join(" · ")
 		}
 		default:
 			return undefined
@@ -204,30 +264,87 @@ function CommandBody({ output }: { output: Record<string, unknown> }) {
 	)
 }
 
+const toSources = (value: unknown): ResearchSourceView[] =>
+	(Array.isArray(value) ? value : []).filter(isRecord).flatMap((entry) => {
+		const url = asString(entry.url)
+		if (!url) {
+			return []
+		}
+		return [
+			{
+				url,
+				title: asString(entry.title) ?? url,
+				site: asString(entry.site) ?? url,
+				favicon: asString(entry.favicon) ?? "",
+				snippet: asString(entry.snippet),
+				extract: asString(entry.extract),
+				words: asNumber(entry.words),
+				read: entry.read === undefined ? undefined : entry.read === true,
+				error: asString(entry.error),
+			},
+		]
+	})
+
 function SearchBody({ output }: { output: Record<string, unknown> }) {
-	const results = Array.isArray(output.results) ? output.results : []
 	return (
-		<div className="toolSection">
-			{results.filter(isRecord).map((result, index) => (
-				<div
-					key={`${asString(result.url) ?? index}`}
-					style={{ marginBottom: 10 }}
-				>
-					<a
-						href={asString(result.url)}
-						rel="noreferrer noopener"
-						style={{ color: "var(--info)" }}
-						target="_blank"
-					>
-						{asString(result.title) ?? asString(result.url)}
-					</a>
-					<div style={{ color: "var(--text-tertiary)", fontSize: 12.5 }}>
-						{asString(result.snippet)?.slice(0, 220)}
-					</div>
-				</div>
-			))}
-		</div>
+		<ResearchCard
+			provider={asString(output.provider)}
+			running={false}
+			sources={toSources(output.results)}
+			topic={asString(output.query)}
+		/>
 	)
+}
+
+/**
+ * Mirrors a command the agent ran into the terminal panel's scrollback, so the
+ * two views show the same session rather than two disconnected histories.
+ */
+function useTerminalMirror(
+	name: string,
+	part: ToolPart,
+	sessionId: string,
+): void {
+	const output = isRecord(part.output) ? part.output : undefined
+	const input = isRecord(part.input) ? part.input : undefined
+	const done = part.state === "output-available" || part.state === "output-error"
+	const command = asString(output?.command) ?? asString(input?.command)
+
+	useEffect(() => {
+		if (!COMMAND_TOOLS.has(name) || !done || !command) {
+			return
+		}
+		pushTerminalEntry(sessionId, {
+			id: part.toolCallId,
+			source: "agent",
+			command,
+			cwd: asString(output?.cwd) ?? ".",
+			running: false,
+			stdout: asString(output?.stdout),
+			stderr: asString(output?.stderr),
+			exitCode: asNumber(output?.exitCode) ?? null,
+			durationMs: asNumber(output?.durationMs),
+			timedOut: output?.timedOut === true,
+			error: part.state === "output-error" ? part.errorText : undefined,
+			at: Date.now(),
+		})
+		// `output` is a fresh object each render; the primitives below are what
+		// actually decide whether there is anything new to record.
+	}, [
+		name,
+		done,
+		command,
+		sessionId,
+		part.toolCallId,
+		part.state,
+		part.errorText,
+		output?.stdout,
+		output?.stderr,
+		output?.exitCode,
+		output?.cwd,
+		output?.durationMs,
+		output?.timedOut,
+	])
 }
 
 export function ToolCall({
@@ -239,6 +356,8 @@ export function ToolCall({
 }) {
 	const name = part.type.replace(/^tool-/, "")
 	const [open, setOpen] = useState(false)
+
+	useTerminalMirror(name, part, sessionId)
 
 	const running =
 		part.state === "input-streaming" || part.state === "input-available"
@@ -266,6 +385,29 @@ export function ToolCall({
 	const output = isRecord(part.output) ? part.output : undefined
 	const imagePath =
 		name === "generate_image" ? asString(output?.path) : undefined
+
+	// Research is the answer's evidence, not a tool call to unfold — show it.
+	if (name === "deep_research") {
+		return (
+			<ResearchCard
+				provider={asString(output?.provider)}
+				queries={
+					Array.isArray(output?.queries)
+						? output.queries.filter(
+								(query): query is string => typeof query === "string",
+							)
+						: Array.isArray((part.input as { queries?: unknown })?.queries)
+							? (
+									(part.input as { queries: unknown[] }).queries as unknown[]
+								).filter((query): query is string => typeof query === "string")
+							: undefined
+				}
+				running={running}
+				sources={toSources(output?.sources)}
+				topic={subject}
+			/>
+		)
+	}
 
 	return (
 		<div className="toolCard">

@@ -88,6 +88,35 @@ const messageText = (message: UIMessage): string =>
 		.map((part) => (part as { text: string }).text)
 		.join("\n")
 
+/**
+ * A cheap fingerprint of what is actually on screen.
+ *
+ * `useChat` hands back a fresh `messages` array on renders where nothing
+ * changed, so an effect keyed on the array itself fires every render. That
+ * effect saves the conversation, the save re-renders the tree, and the cycle
+ * repeats until React aborts with "Maximum update depth exceeded". Keying on
+ * this string instead means the effect only runs when the content moved.
+ */
+const messagesSignature = (messages: UIMessage[]): string =>
+	messages
+		.map((message) => {
+			const parts = message.parts
+				.map((part) => {
+					if (part.type === "text" || part.type === "reasoning") {
+						return `${part.type}:${(part as { text: string }).text.length}`
+					}
+					const state = (part as { state?: string }).state
+					return state ? `${part.type}:${state}` : part.type
+				})
+				.join(",")
+			return `${message.id}[${parts}]`
+		})
+		.join("|")
+
+// While a turn streams, history is written at most this often. The final state
+// is always flushed when the turn ends.
+const SAVE_THROTTLE_MS = 400
+
 export function ChatView({
 	conversation,
 	model,
@@ -163,17 +192,51 @@ export function ChatView({
 		id: conversation.id,
 		messages: conversation.messages,
 		transport,
+		// Coalesce stream chunks into ~20 renders a second. Without it every token
+		// re-renders the whole thread, which is what made a long answer (or an
+		// image landing mid-turn) feel like the UI had locked up.
+		experimental_throttle: 50,
 	})
 
 	const busy = status === "submitted" || status === "streaming"
 
-	useEffect(() => {
-		onMessagesChange(messages)
-	}, [messages, onMessagesChange])
+	// Everything below reads the newest messages through this ref, so effects and
+	// callbacks never have to list the array itself as a dependency.
+	const messagesRef = useRef(messages)
+	messagesRef.current = messages
 
-	// Refresh the file panel and name the chat once a turn finishes.
+	const signature = useMemo(() => messagesSignature(messages), [messages])
+	const savedSignature = useRef(signature)
+
+	// Persist history when it actually changes, throttled while streaming.
 	useEffect(() => {
-		if (status !== "ready" || messages.length === 0) {
+		if (savedSignature.current === signature) {
+			return
+		}
+		if (!busy) {
+			savedSignature.current = signature
+			onMessagesChange(messagesRef.current)
+			return
+		}
+		const timer = window.setTimeout(() => {
+			savedSignature.current = messagesSignature(messagesRef.current)
+			onMessagesChange(messagesRef.current)
+		}, SAVE_THROTTLE_MS)
+		return () => window.clearTimeout(timer)
+	}, [signature, busy, onMessagesChange])
+
+	// Refresh the file panel and name the chat once a turn finishes. Keyed on the
+	// status transition, not on the messages, so a streaming turn does not reload
+	// the workspace on every token.
+	const previousStatus = useRef(status)
+	useEffect(() => {
+		const wasBusy =
+			previousStatus.current === "submitted" ||
+			previousStatus.current === "streaming"
+		previousStatus.current = status
+
+		const messages = messagesRef.current
+		if (status !== "ready" || !wasBusy || messages.length === 0) {
 			return
 		}
 		onWorkspaceChanged()
@@ -191,7 +254,7 @@ export function ChatView({
 		titleRequested.current = true
 		void (async () => {
 			try {
-			const response = await fetch("/agent-api/title", {
+				const response = await fetch("/agent-api/title", {
 					method: "POST",
 					headers: {
 						...(await openaiAuthHeaders()),
@@ -211,7 +274,7 @@ export function ChatView({
 				// A missing title is not worth surfacing.
 			}
 		})()
-	}, [status, messages, model, settings.autoTitle, onTitle, onWorkspaceChanged])
+	}, [status, model, settings.autoTitle, onTitle, onWorkspaceChanged])
 
 	// Keep the view pinned to the newest content unless the user scrolled up.
 	useEffect(() => {
@@ -232,28 +295,34 @@ export function ChatView({
 		stickToBottom.current = distance < 120
 	}, [])
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: new messages are the scroll trigger
+	// biome-ignore lint/correctness/useExhaustiveDependencies: new content is the scroll trigger
 	useEffect(() => {
 		const thread = threadRef.current
 		if (!thread || !stickToBottom.current) {
 			return
 		}
 		thread.scrollTop = thread.scrollHeight
-	}, [messages])
+	}, [signature])
 
+	/**
+	 * Reads the message list from the ref rather than closing over it, so the
+	 * callback identity stays stable and the two `setMessages` calls below always
+	 * build on the newest state instead of the snapshot this render captured.
+	 */
 	const generateImage = useCallback(
 		async (prompt: string) => {
 			setGeneratingImage(true)
 			setImageError(undefined)
+			const before = messagesRef.current
 			const userMessage: UIMessage = {
 				id: `img-user-${Date.now()}`,
 				role: "user",
 				parts: [{ type: "text", text: prompt }],
 			}
-			setMessages([...messages, userMessage])
+			setMessages([...before, userMessage])
 
 			try {
-			const response = await fetch("/agent-api/image", {
+				const response = await fetch("/agent-api/image", {
 					method: "POST",
 					headers: {
 						...(await openaiAuthHeaders()),
@@ -261,15 +330,24 @@ export function ChatView({
 					},
 					body: JSON.stringify({ prompt, sessionId: conversation.id }),
 				})
-				const payload = (await response.json()) as {
+				const raw = await response.text()
+				const payload = (
+					raw.trim().length > 0 ? JSON.parse(raw) : {}
+				) as {
 					path?: string
 					error?: string
+					hint?: string
 				}
 				if (!response.ok || !payload.path) {
-					throw new Error(payload.error ?? "Image generation failed.")
+					throw new Error(
+						[payload.error ?? `Image generation failed (HTTP ${response.status}).`, payload.hint]
+							.filter(Boolean)
+							.join(" "),
+					)
 				}
+				const fileUrl = `/agent-api/workspace/file?sessionId=${encodeURIComponent(conversation.id)}&path=${encodeURIComponent(payload.path)}`
 				setMessages([
-					...messages,
+					...before,
 					userMessage,
 					{
 						id: `img-assistant-${Date.now()}`,
@@ -277,7 +355,7 @@ export function ChatView({
 						parts: [
 							{
 								type: "text",
-					text: `Generated \`${payload.path}\`.\n\n![${prompt}](/agent-api/workspace/file?sessionId=${encodeURIComponent(conversation.id)}&path=${encodeURIComponent(payload.path)})`,
+								text: `Generated \`${payload.path}\`.\n\n![${prompt}](${fileUrl})`,
 							},
 						],
 					},
@@ -289,12 +367,13 @@ export function ChatView({
 						? imageFailure.message
 						: String(imageFailure),
 				)
-				setMessages(messages)
+				// Drop the optimistic user turn so the failed prompt can be retried.
+				setMessages(before)
 			} finally {
 				setGeneratingImage(false)
 			}
 		},
-		[conversation.id, messages, setMessages, onWorkspaceChanged],
+		[conversation.id, setMessages, onWorkspaceChanged],
 	)
 
 	const handleSend = useCallback(

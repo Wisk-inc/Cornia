@@ -1,5 +1,6 @@
 "use client"
 
+import { UserButton } from "@clerk/nextjs"
 import { parseJwtClaims } from "@openai-oauth/core"
 import { useSignInWithChatGPT } from "@openai-oauth/react"
 import type { UIMessage } from "ai"
@@ -10,6 +11,7 @@ import {
 	downloadAllConversations,
 	downloadConversationMarkdown,
 } from "../lib/export"
+import { clerkEnabled } from "../lib/clerk"
 import { DEFAULT_ROLE_ID, roleById } from "../lib/roles"
 import type { Conversation, Settings } from "../lib/types"
 import { ChatView } from "./ChatView"
@@ -22,11 +24,13 @@ import {
 	SettingsIcon,
 	SidebarIcon,
 	SunIcon,
+	TerminalIcon,
 } from "./icons"
 import { ModelPicker } from "./ModelPicker"
 import { SettingsDialog } from "./SettingsDialog"
 import { Sidebar } from "./Sidebar"
 import { SignIn } from "./SignIn"
+import { TerminalPanel } from "./TerminalPanel"
 
 const SETTINGS_KEY = "agent.settings.v1"
 const MODEL_KEY = "agent.model.v1"
@@ -71,6 +75,7 @@ export function AgentApp() {
 	const [settingsOpen, setSettingsOpen] = useState(false)
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 	const [filesOpen, setFilesOpen] = useState(false)
+	const [terminalOpen, setTerminalOpen] = useState(false)
 	const [workspaceToken, setWorkspaceToken] = useState(0)
 	const [activeId, setActiveId] = useState<string | undefined>(undefined)
 	const [model, setModel] = useState<string | undefined>(undefined)
@@ -299,6 +304,21 @@ export function AgentApp() {
 					>
 						{settings.theme === "dark" ? <SunIcon /> : <MoonIcon />}
 					</button>
+					{/* The app account, next to the ChatGPT account in the sidebar. */}
+					{clerkEnabled ? (
+						<UserButton
+							appearance={{ elements: { avatarBox: { width: 26, height: 26 } } }}
+						/>
+					) : null}
+					<button
+						aria-label="Terminal"
+						className={`iconButton ${terminalOpen ? "active" : ""}`}
+						onClick={() => setTerminalOpen((current) => !current)}
+						title="Open a shell in this chat's sandbox"
+						type="button"
+					>
+						<TerminalIcon />
+					</button>
 					<button
 						aria-label="Workspace files"
 						className={`iconButton ${filesOpen ? "active" : ""}`}
@@ -322,6 +342,15 @@ export function AgentApp() {
 					/>
 				) : null}
 			</div>
+
+			{terminalOpen && conversation ? (
+				<TerminalPanel
+					key={conversation.id}
+					onClose={() => setTerminalOpen(false)}
+					onWorkspaceChanged={handleWorkspaceChanged}
+					sessionId={conversation.id}
+				/>
+			) : null}
 
 			{filesOpen && conversation ? (
 				<FilesPanel

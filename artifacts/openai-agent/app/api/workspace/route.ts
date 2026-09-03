@@ -1,9 +1,15 @@
+import { requireUser } from "../../lib/auth"
 import { errorMessage } from "../../lib/openai"
 import { listWorkspace, removeWorkspacePath } from "../../lib/workspace"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	const url = new URL(request.url)
 	const sessionId = url.searchParams.get("sessionId")?.trim()
 	if (!sessionId) {
@@ -25,6 +31,11 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	const url = new URL(request.url)
 	const sessionId = url.searchParams.get("sessionId")?.trim()
 	const target = url.searchParams.get("path")?.trim()

@@ -1,3 +1,4 @@
+import { requireUser } from "../../lib/auth"
 import path from "node:path"
 import { errorMessage } from "../../lib/openai"
 import { isProbablyText, writeWorkspaceFile } from "../../lib/workspace"
@@ -14,6 +15,11 @@ const safeName = (name: string): string => {
 
 /** Saves an attachment straight into the conversation workspace. */
 export async function POST(request: Request) {
+	const denied = await requireUser()
+	if (denied) {
+		return denied
+	}
+
 	try {
 		const form = await request.formData()
 		const sessionId = String(form.get("sessionId") ?? "").trim()

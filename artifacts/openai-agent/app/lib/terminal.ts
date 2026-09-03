@@ -226,3 +226,114 @@ export const runCommand = async ({
 		})
 	})
 }
+
+/** Package managers the sandbox knows how to drive. */
+export const PACKAGE_MANAGERS = [
+	"npm",
+	"pnpm",
+	"yarn",
+	"bun",
+	"pip",
+	"cargo",
+	"go",
+	"gem",
+] as const
+
+export type PackageManager = (typeof PACKAGE_MANAGERS)[number]
+
+/**
+ * Package names, with an optional version specifier. Deliberately strict: these
+ * strings are handed to a shell, and a name is never a place for a `;` or a
+ * backtick.
+ */
+const PACKAGE_NAME = /^[@a-zA-Z0-9][\w.@/+-]*(?:(?:[=<>~^!]{1,2}|@)[\w.*+-]+)?$/
+
+export const assertPackageNames = (packages: string[]): string[] => {
+	if (packages.length === 0) {
+		throw new Error("No packages were given.")
+	}
+	for (const name of packages) {
+		if (!PACKAGE_NAME.test(name)) {
+			throw new Error(
+				`"${name}" is not a valid package name. Use \`run_command\` if you need to pass shell arguments.`,
+			)
+		}
+	}
+	return packages
+}
+
+const quote = (value: string): string => `'${value.replace(/'/g, "'\\''")}'`
+
+/** Builds the install or uninstall line for a manager. */
+export const packageCommand = (
+	manager: PackageManager,
+	action: "install" | "uninstall",
+	packages: string[],
+	dev = false,
+): string => {
+	const names = assertPackageNames(packages).map(quote).join(" ")
+	const devFlag = dev ? " --save-dev" : ""
+
+	switch (manager) {
+		case "npm":
+			return action === "install"
+				? `npm install${devFlag} ${names}`
+				: `npm uninstall ${names}`
+		case "pnpm":
+			return action === "install"
+				? `pnpm add${dev ? " --save-dev" : ""} ${names}`
+				: `pnpm remove ${names}`
+		case "yarn":
+			return action === "install"
+				? `yarn add${dev ? " --dev" : ""} ${names}`
+				: `yarn remove ${names}`
+		case "bun":
+			return action === "install"
+				? `bun add${dev ? " --dev" : ""} ${names}`
+				: `bun remove ${names}`
+		case "pip":
+			return action === "install"
+				? `python3 -m pip install --user ${names}`
+				: `python3 -m pip uninstall -y ${names}`
+		case "cargo":
+			return action === "install" ? `cargo add ${names}` : `cargo remove ${names}`
+		case "go":
+			return action === "install"
+				? `go get ${names}`
+				: `go mod edit ${packages.map((name) => `-droprequire=${quote(name)}`).join(" ")} && go mod tidy`
+		case "gem":
+			return action === "install"
+				? `gem install --user-install ${names}`
+				: `gem uninstall -x ${names}`
+	}
+}
+
+/** Extensions the sandbox can execute without being told how. */
+const RUNNERS: Array<{ pattern: RegExp; run: (file: string) => string }> = [
+	{ pattern: /\.(py)$/i, run: (file) => `python3 ${file}` },
+	{ pattern: /\.(js|cjs)$/i, run: (file) => `node ${file}` },
+	{ pattern: /\.(mjs)$/i, run: (file) => `node ${file}` },
+	{ pattern: /\.(ts|tsx)$/i, run: (file) => `npx --yes tsx ${file}` },
+	{ pattern: /\.(sh|bash)$/i, run: (file) => `bash ${file}` },
+	{ pattern: /\.(rb)$/i, run: (file) => `ruby ${file}` },
+	{ pattern: /\.(go)$/i, run: (file) => `go run ${file}` },
+	{ pattern: /\.(php)$/i, run: (file) => `php ${file}` },
+	{ pattern: /\.(rs)$/i, run: (file) => `rustc ${file} -o /tmp/rs.out && /tmp/rs.out` },
+	{ pattern: /\.(java)$/i, run: (file) => `java ${file}` },
+]
+
+/** Picks the interpreter for a file, so the agent does not have to guess. */
+export const runFileCommand = (
+	path: string,
+	args: string[] = [],
+): string => {
+	const quoted = quote(path)
+	const runner = RUNNERS.find((entry) => entry.pattern.test(path))
+	if (!runner) {
+		throw new Error(
+			`No runner is known for "${path}". Use \`run_command\` with an explicit command line.`,
+		)
+	}
+	const suffix = args.length > 0 ? ` ${args.map(quote).join(" ")}` : ""
+	return `${runner.run(quoted)}${suffix}`
+}

@@ -47,3 +47,14 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local environment files — never commit real keys.
+.env
+.env.local
+.env.*.local
+
+# Next.js
+.next/
+
+# Per-conversation agent sandboxes, created at runtime.
+.agent-workspace/
